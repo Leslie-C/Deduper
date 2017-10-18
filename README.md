@@ -8,7 +8,7 @@ Write up a strategy for writing a Reference based PCR duplicate removal tool. Th
     - Include a properly formated expected output sam file
 - Develop your algorithm using pseudocode
 - Determine high level functions
-    - Desrciption
+    - Description
     - Function headers
     - Test examples (for individual functions)
     - Return statement
