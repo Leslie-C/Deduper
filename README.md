@@ -26,3 +26,34 @@ You can find your assigned reviewees on Canvas. You can find your fellow student
 github.com/uo-bgmp/deduper-<user>
 ```
 Be sure to leave comments on their repositories by creating issues or by commenting on the pull request.
+
+## Part 3
+Write your deduper function! Due January 12, 2018
+
+Given a SAM file of uniquely mapped reads, remove all PCR duplicates (retain only a single copy of each read). Remember:
+- Samtools sort
+- Adjust for soft clipping
+- Single-end reads
+- Known UMIs
+- Considerations:
+    - Millions of reads – avoid loading everything into memory!
+    - Be sure to utilize functions appropriately
+    - Appropriately comment code and include doc strings
+- **CHALLENGE**: Include options for
+    - Single-end vs paired-end
+    - Known UMIs vs randomers
+    - Choice of duplicate written to file
+    
+You MUST:
+- Write Python 3 compatible code
+- Include the following argparse options
+    - ```-f```, ```--file```: required arg, absolute file path
+    - ```-p```, ```--paired```: optional arg, designates file is paired end (not single-end)
+    - ```-u```, ```--umi```: optional arg, designates file containing the list of UMIs (unset if randomers instead of UMIs)
+    - ```-h```, ```--help```: optional arg, prints a USEFUL help message (see argparse docs)
+        - If your script is not capable of dealing with a particular option (ex: no paired-end functionality), your script should print an error message and quit
+- Output the first read encountered if duplicates are found
+    - You may include an additional argument to designate output of a different read (highest quality or random or ???)
+- Output a properly formatted SAM file with “_deduped” appended to the filename
+- Name your python script ```<your_last_name>_deduper.py```
+
