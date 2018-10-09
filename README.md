@@ -23,7 +23,7 @@ An important part of writing code is reviewing code - both your own and other's.
 
 You can find your assigned reviewees on Canvas. You can find your fellow students' repositories at 
 ```
-github.com/uo-bgmp/deduper-<user>
+github.com/2018-BGMP/deduper-<user>
 ```
 Be sure to leave comments on their repositories by creating issues or by commenting on the pull request.
 
