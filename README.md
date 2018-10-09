@@ -13,7 +13,7 @@ Write up a strategy for writing a Reference based PCR duplicate removal tool. Th
     - Test examples (for individual functions)
     - Return statement
     
-For this portion of the assignment, you should design your algorithm for single-end data, with 96 UMIs. UMI information will be in the QNAME, like so: ```NS500451:154:HWKTMBGXX:1:11101:15364:1139:GAACAGGT```. Discard any UMIs with errors.
+For this portion of the assignment, you should design your algorithm for single-end data, with 96 UMIs. UMI information will be in the QNAME, like so: ```NS500451:154:HWKTMBGXX:1:11101:15364:1139:GAACAGGT```. Discard any UMIs with errors (or error correct, if you're feeling ambitious).
 
 ## Part 2
 An important part of writing code is reviewing code - both your own and other's. In this portion of the assignment, you will be assigned 3 students' algorithm to review. Be sure to evaluate the following points:
@@ -28,7 +28,7 @@ github.com/uo-bgmp/deduper-<user>
 Be sure to leave comments on their repositories by creating issues or by commenting on the pull request.
 
 ## Part 3
-Write your deduper function! Due January 12, 2018
+Write your deduper function!
 
 Given a SAM file of uniquely mapped reads, remove all PCR duplicates (retain only a single copy of each read). Remember:
 - Samtools sort
