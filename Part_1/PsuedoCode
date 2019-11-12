@@ -1,0 +1,78 @@
+"""
+DeDuper- Part 1 - Pseudocode – Reference Based PCR Duplicate Removal Tool
+David Evarts 
+Due 11/15/19
+
+The Problem:  PCR amplification is used to provide enough fragments to capture most of the unique reads and create a library for sequencing.   RNAseq is often used to measure differential expression.  PCR duplicates can be mistaken for biological increases in expression and mask the true expression levels.  If the amount of PCR amplification is heightened, in order to capture elements that are rarely expressed, the amount of PCR duplication can increase substantially.
+
+The Purpose: If duplicates that are not due to higher expression, but are, instead, artifacts of library creation, such as PCR amplification, can be removed, a better understanding of the expression levels of genetic elements can be achieved.
+
+The general strategy:  When Unique Molecular Identifiers (UMIs) have been added, a PCR duplicate fragment read will have all of the following features, when compared with a duplicated read.  These can be determined from the SAM file and a list of UMIs.  Parsing through the reads, duplicates will be isolated.
+
+•	It will be on the same strand.
+•	It will be on the same chromosome
+•	It will be at the same initial position, after accounting for soft clipping at the beginning in the read direction.
+•	It will have the same UMI.
+Examples:
+Properly formatted Input Sam file:  What does this look like?
+Properly formated expected output sam file:
+
+Functions:
+
+Def Pair_Checker(pair of SAM reads):
+###Takes in a pair of reads. Checks match of one against another.###
+-Determine orientation of each.  Are they the same.  If not, they are not a pair.  The direction can be read from the bitwise flag.  
+-Check Chromosome
+-Adjust starting position for direction, soft-clipping and gaps SAM cigar string, alignment column 6
+-Check adjusted read start and end position
+-Check Check sequence
+-Check UMI
+- If they are matches place first?
+
+
+Pseudo-Code:
+-Input is via a bash slurm script which collects the arg-parse arguments.
+
+1.) #### Install arg-parse function ####
+Return – ability to set arg-parse
+Unit Test – See Arg parse function below. If Arg-Parse function works, it’s installed.
+
+2.) #### Install conda environment####
+Return – ability to read python script
+Unit Test – Slurm shell should be able to read and respond to a python print(“foo”) script and will display bgmp -env3
+
+3.) ###Use Arg-Parse function to collect information and set tags that can be called.###  
+- Collect Input SAM file. Specify that it must be a SAM file that has been ordered using SamTools -sort.  SamTools sort outputs a sorted (by position) Bam file.  If we use Bam to Sam to convert it to a human readable file, do we keep the sorting?
+	-collect UMI file as a TSV
+	-collect from user wether this is a single or paired-end read
+	-collect from user wether duplicates should be recorded in a duplicates output file
+	-collect from user name to use on output file
+Return – A slurm script calling a correctly worded python script with arg flags in slurm script and arg parse coded in python script should correctly respond to the following print commands.
+	-print name of sam file input test script.  tester_ordered.sam
+	-print name of UMI.tsv
+	-print single or paired end
+	-print duplicates file name.sam or none
+	-print correct file name.sam
+
+4.) #### Open the input SAM file####
+Open as read.
+Return- opened file
+Unit Test – display tester input sam file with cat command piped to head.
+
+5.) ####Open an output duplicates_removed.sam File.####
+Open with write permission
+Return -opened, writable test.
+Unit Test – write first full read from input tester file to output file.  Display contents with cat command.
+
+6.) ####Open1st and 2nd Reads####
+Begin loop to compare and two.  If they are the same or different do what?
+Open 2nd and 3rd, do the same.
+Open 3rd and 4th, do the same.
+Continue with last in a pair and the next in line, until done.  How?
+
+Loop to check pairs
+###Determine Direction of Read####
+Use orientation ()
+If forward go to forward loop.
+Else go to reverse loop.
+"""
