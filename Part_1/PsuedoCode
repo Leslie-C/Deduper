@@ -17,20 +17,41 @@ Examples:
 Properly formatted Input Sam file:  What does this look like?
 Properly formated expected output sam file:
 
-Functions:
+######Functions:#########
 
-Def Pair_Checker(pair of SAM reads):
-###Takes in a pair of reads. Checks match of one against another.###
--Determine orientation of each.  Are they the same.  If not, they are not a pair.  The direction can be read from the bitwise flag.  
--Check Chromosome
--Adjust starting position for direction, soft-clipping and gaps SAM cigar string, alignment column 6
--Check adjusted read start and end position
--Check Check sequence
--Check UMI
-- If they are matches place first?
+Def Direction_Checker(one Sam aligned read):  Unless find a samtool that provides a reverse file and a forward file
 
+Def Forward_adjust_start (one Sam aligned read cigar string and one 0 based left most start position):
+This function takes the cigar string from one forward read and its start position and returns an adjusted start position.
+•	Grab start position number, set it as count
+•	Grab cigar string by column number
+•	Grep for first number letter combination
+	- If letter is S, subtract the number preceding it from count.
+Return - A number that is the adjusted start position.
+Unit Test - Try the following cigar strings and start position.  Print the count. 
+	start = 1, cigar = 10M, adusted = 1
+	start = 2, cigar = 2S5M, adjusted = 0
+	start = 37, cigar = 1S3M7N4M, adjusted = 36
 
-Pseudo-Code:
+Def Reverse_adjust_start (one Sam aligned reverse read):
+This function takes the cigar string from one reverse read and its start position and returns an adjusted start position.
+•	 Grab start position number, set it as count
+•	Grab cigar string by column number
+•	In a loop Grep for each number- letter combination
+	- If letter is S preceeded by a letter and a number, add the number preceding it to count. 
+          This is because you want to add soft-clips at the end of the number chain/ start of the read  on reverse reads, but 
+	  not at the left-most position.
+	- If letter is M, add the number preceding it to the count.
+	- If letter is N add the number preceding it to the count.
+	- If letter is D add the number preceding it to the count.
+	- If letter is I ignore the number in front of it.
+Return - A number that is the adjusted start position.
+Unit Test - Try the following cigar strings and start position.  Print the count. 
+	start = 50, cigar = 10M,20N,10M,5D,5S adusted = 100
+	start = 0, cigar = 5M,10N,5M, adjusted = 20
+	start = 0, cigar = 1S5M10N4M, adjusted = 20
+	
+########Pseudo-Code:###########
 -Input is via a bash slurm script which collects the arg-parse arguments.
 
 1.) #### Install arg-parse function ####
@@ -42,10 +63,12 @@ Return – ability to read python script
 Unit Test – Slurm shell should be able to read and respond to a python print(“foo”) script and will display bgmp -env3
 
 3.) ###Use Arg-Parse function to collect information and set tags that can be called.###  
-- Collect Input SAM file. Specify that it must be a SAM file that has been ordered using SamTools -sort.  SamTools sort outputs a sorted (by position) Bam file.  If we use Bam to Sam to convert it to a human readable file, do we keep the sorting?
+ - Collect Input SAM file. Specify that it must be a SAM file that has been ordered using SamTools -sort. 
+ - SamTools sort outputs a sorted (by position) Bam file. 
+ - If we use Bam to Sam to convert it to a human readable file, do we keep the sorting?
 	-collect UMI file as a TSV
 	-collect from user wether this is a single or paired-end read
-	-collect from user wether duplicates should be recorded in a duplicates output file
+	-collect from user whether duplicates should be recorded in a duplicates output file
 	-collect from user name to use on output file
 Return – A slurm script calling a correctly worded python script with arg flags in slurm script and arg parse coded in python script should correctly respond to the following print commands.
 	-print name of sam file input test script.  tester_ordered.sam
@@ -61,12 +84,13 @@ Unit Test – display tester input sam file with cat command piped to head.
 
 5.) ####Open an output duplicates_removed.sam File.####
 Open with write permission
-Return -opened, writable test.
+Return -opened, writable file.
 Unit Test – write first full read from input tester file to output file.  Display contents with cat command.
 
-6.) ####Open1st and 2nd Reads####
-Begin loop to compare and two.  If they are the same or different do what?
-Open 2nd and 3rd, do the same.
+######Big Loop#######
+6.) ####Open1st and 2nd Read####
+Initialize a list Good files.
+For each line in the file, if begins with "@HD", "@  2nd and 3rd, do the same.
 Open 3rd and 4th, do the same.
 Continue with last in a pair and the next in line, until done.  How?
 
