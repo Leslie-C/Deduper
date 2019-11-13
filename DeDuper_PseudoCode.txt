@@ -1,0 +1,98 @@
+Wyatt Eng
+Deduper PseudoCode
+
+################################################################################
+Define Problem: During the library preparation, PCR is required to increase the
+amount of genetic material that can be then be loaded on to a sequencer.
+However, PCR duplication may occur and lead to unequal coverage across a genome.
+In order to account for PCR duplication, we have to identify reads that map to
+the same chromosome and position of a genome in order to check for duplicated
+contigs.
+################################################################################
+
+General Workflow:
+    -Sort Sam file based on chromosome and starting position
+    -Check if UMI is valid
+    -Check if UMI's are identical
+    -Check the chromosome
+    -Check if strand is 3' or 5' using bitwise flag
+    -Calculate the 5' starting position
+    -Check if the starting position matches the previous record
+
+__________
+Functions:
+
+1) Check to see if UMI's are valid and are the same.
+
+def check_UMI's(Read_1[1],Read_2[2]):
+  '''Takes in the portion of the sam record containg the UMI. Parsing must
+  be done to isolate the UMI sequence and then check if they are valid and
+  are the same'''
+  -split input by ":" and keep then check the UMI chunk
+  Return: True or False
+
+Example Input: NS500451:154:HWKTMBGXX:1:12434:14236:1129:GAACAGGT, NS500451:154:HWKTMBGXX:1:11101:15364:1139:GAACAGGT
+Example Output: True
+
+
+2) Bitwise flag comparison to check if strands are aligned in the same direction and returns the alignment direction.
+
+def bitwise_direction(Read_1[*bitwise_flag_index*], Read_2[*bitwise_flag_index*]):
+  '''Check to see if bitwise flag indicates the reads aligned in the same direction'''
+  Return: (True or False),(forward, reverse, or NA)
+
+Example Input: 83,99
+Example Output: False
+
+3) Calculate the 5' Starting position and check if matches.
+
+def check_start_position(Read_1[*CIGAR_String_Index*], Read_2[*CIGAR_String_Index*], Read_1[*Mapping_Position*], Read_2[*Mapping_Position*])
+  '''Check if position that the two strands map to are the same'''
+  Return: True or False
+
+Example Input: 66M, 62M4S, 64949467, 64949463
+Example Output: True
+
+___________
+Pseudocode:
+
+Using a bash script, sort the sam file by chromosome and left most starting position.
+
+Import Libraries
+  -import itertools
+
+Open Index File and use a for loop to iterate through STL96.txt and store every UMI into a dictionary
+  -Store UMIs in UMI_dict[UMI:0]
+
+  Open Input/Output Files:
+    -Input Sam file to read from
+    -Output Sam file to read from
+
+Define an empty array that will store the previous read for comparison with the current read
+previous_line[]
+
+Read in one line at a time from a file
+for current_line in file:
+
+  -Set a write to file bool variable to True
+
+  -Read in 1 line and split the line by white space and store it as a vector
+
+  -> if check_UMI() function returns TRUE i.e. the UMIs are valid and are the same, Check if chromosomes are the same using the sam header index:
+
+    -> if bitwise flags indicate both reads are aligned normally or both reverse complement (Using bitwise_direction() function):
+
+      -> if the starting positions are the same, using the check_start_position() function:
+
+          -Set the write to file bool variable to False
+
+  -> if write to file variable is true:
+
+      -Write the line to the output file.
+
+  -Set the previous read array to the current_line
+  previous_line = current_line
+
+Close All Files:
+  -Input Sam file to read from
+  -Output Sam file to read from
