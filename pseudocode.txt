@@ -1,0 +1,96 @@
+Problem: During RNA-Seq Library Prep, PCR amplification is imperative step in the experimental workflow.
+However, a byproduct is the occurrence of PCR duplication, where replicates of the same molecule are overly expressed, leading to PCR bias.
+
+Solution: Here, I will attempt to identify PCR duplicates and remove multiple occurrences of the same molecule using a custom python script called
+"Deduper". My Deduper script will look at:
+
+* reads on the same alignment position (using RNAME, OS, & FLAG as metrics)
+* soft clipping (using CIGAR "S" as metric)
+* same UMI (using QNAME & STL96.txt file as metric)
+on a sorted SAM file to identify PCR duplicates.
+
+My script operates under the following assumption:
+
+* the input SAM file is sorted
+* the reads of the SAM file are single-ended
+* the UMIs from QNAME match the UMIs listed in the STL96.txt file
+
+------------------------------------------------ Actual PseudoCode Starts Here ---------------------------------------------------------------
+
+def get_UMI:
+```This function will read in the known UMI file (STL96.txt) and return a list of known UMIs. This function will be called once we've read in the sorted sam file.
+If the SAM record does not contain a known UMI, the record will be discarded. No parameters passed thru this function```
+
+  open(STL96.txt, "rt") as file:
+    #create an empty list containing known UMI
+    known_UMI = []
+    for line in file:
+      append UMIs from file into known_UMI
+  return known_UMI
+
+Unit Test: print(get_UMI)
+[AACGCCAT, AAGGTACG ,AATTCCGG, ACACAGAG, ACACTCAG...etc]
+
+def parsing_QNAME(QNAME1, QNAME2):
+```This function takes in two parameters: The QNAME taken from element current_record[0] & next_record[0].
+Since QNAME contains a long string, delimited by ":", this function will be used to parse thru the QNAME to find the actual UMI string. Will return true if
+two UMIs match each other```
+# i.g) NS500451:154:HWKTMBGXX:1:11101:15364:1139:GAACAGGT <- we want to split by ":" to isolate the UMIs
+
+    QNAME1 = QNAME1.split(":")
+    QNAME2 = QNAME2.split(":")
+
+    access the last element in the new lists that holds the UMIs
+
+    if UMI in QNAME1 == UMI in QNAME2:
+        return True
+
+
+
+#reading in records of the SAM file, 1 record at a time, each record read in will be compared to the record stored in that list
+with open(sorted.sam, "rt") as file:
+
+  #call on get_UMI function, create new list for known UMIs
+  UMI_list = get_UMI()
+
+  While True:
+
+    1) a) create an empty list to store the current record in
+          current_record = []
+
+      b) create another empty list to store the next record
+         next_record = []
+
+    2)create an if statement that ignores headers starting with "@" from SAM file:
+      *we don't want the first nth lines of the SAM file containing headers beginning with "@"
+
+    3) L1 = read in first record of SAM file
+
+      L2 = read in the next record of the SAM file
+
+    4) append L1 record to current_record[], use .readline() and .rstrip(" ")
+
+       append L2 record to next_record[], use. readLine() & .rstrip(" ")
+
+       *this will store records into a list, partitioned by their columns parameters (QNAME, BITWISE, PLEN, ETC)
+
+    5)break out of loop if the first line is empty,
+    if L1 == "":
+        break
+
+    6) check to see if current_record[0] contains the a known UMI within its QNAME:
+    (the logic is to efficiently break out of the loop at the first condition if QNAME is not in UMI_list[])
+    if current_record[0] is not UMI_list:
+        read in a new (next) record
+        discard this record
+        iterate over a new record, start at the top of this loop again
+
+          7) create a nested if statement that calls parsing_QNAME(QNAME1, QNAME2) function.
+          if parsing_QNAME(current_record[0], next_record[0]) == true
+          move to next if statement
+
+              8) another nested-if statement that checks if POS column
+              if current_record[3] == next_record[3]:
+              move on to the next condition 
+
+    L2 = read in the second record in the sam file (will compare)
