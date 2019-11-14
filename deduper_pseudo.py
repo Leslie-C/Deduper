@@ -21,6 +21,7 @@ Notes:
 """
 
 """
+Main Code:
 import regex
 import my functions
 
@@ -53,6 +54,7 @@ for line in input sam file:
                 - if the "umi" is not the list of values associated with the tuple write it out
 """
 """
+Functions:
 def function to parse flags
   "parses the bitwise flag"
     a. checks whether a read was mapped (will not write out) (e.g. 100 not mapped)
