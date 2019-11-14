@@ -47,7 +47,8 @@ Example Output: False
 3) Calculate the 5' Starting position and check if matches.
 
 def check_start_position(Read_1[*CIGAR_String_Index*], Read_2[*CIGAR_String_Index*], Read_1[*Mapping_Position*], Read_2[*Mapping_Position*])
-  '''Check if position that the two strands map to are the same'''
+  '''Check if position that the two strands map to are the same, account  for
+  insertions and deletions for only reverse complemented strands'''
   Return: True or False
 
 Example Input: 66M, 62M4S, 64949467, 64949463
@@ -90,7 +91,7 @@ for current_line in file:
 
       -Write the line to the output file.
 
-  -Set the previous read array to the current_line
+  -Set the previous read array to the current read array if there was no PCR duplication if there was gene duplication don't set current line as previous line.
   previous_line = current_line
 
 Close All Files:
