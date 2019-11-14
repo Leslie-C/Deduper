@@ -72,11 +72,13 @@ def main_code(filename):
                 continue
 
             bit_flag = int(cols[1])
+            orientation = isReverse(bit_flag)
             CIGAR_split = re.findall(r'\d+[MIDNSHP=X]', cols[5])
+            
             if isMapped(bit_flag):
                 sam_pos = int(cols[3])
                 offset = 0
-                if isReverse(bit_flag) == False:
+                if orientation == False:
                     if 'S' in CIGAR_split[0]:
                         offset = int(CIGAR_split[0][:-1])
                         actual_pos = sam_pos - offset
@@ -91,8 +93,8 @@ def main_code(filename):
                             offset +=  int(id[:-1])
                     actual_pos = sam_pos + offset
 
-            if (UMI, actual_pos) not in output_dict:
-                output_dict[(UMI, actual_pos)] = line
+            if (UMI, actual_pos, orientation) not in output_dict:
+                output_dict[(UMI, actual_pos, orientation)] = line
             else:
                 dupe_counter += 1
 

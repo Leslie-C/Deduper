@@ -1,12 +1,34 @@
+######
+#Sequencing (mostly) require the usage of PCR amplification in order to get a signal on the sequencer. However, not all sequences are equally amplified. In RNA-seq experiments, we like to look at differential expression of transcripts between genes. If sequences are not equally amplified, then the expression levels seen in the data will not represent the actual expression levels. Because of this, it is important to get rid of PCR duplicates in order to get a true representation of the expression levels.
+######
+
+
+
+
 #import re (regex)
 
 # use samtools sort to sort the sam file by position (unless presorted)
 
-# function get_UMI(first_col):
+#function get_UMI(first_col):
+
+    ```
+    #Parameters: first_col
+    #This function will extract the UMI from the first column of the record
+
+    #Returns: UMI (string)
+    ```
+
     #extract UMI using regex
     #return UMI
 
 # function isReverse(second_col):
+    ```
+    #Parameters: second_col
+    #This function will figure out which strand the read is aligned to.
+
+    #Returns: True/False (Boolean)
+    ```
+
     # parse bitflag using bitwise operations (&)
     # if 16th bit is set:
         # return True
@@ -14,6 +36,13 @@
         # return False
 
 # function isMapped(second_col)
+    ```
+    #Parameters: second_col
+    #This function will return whether the read is mapped or not.
+
+    #Returns: True/False (Boolean)
+    ```
+
     # parse bitflag using bitwise operations (&)
     # if 4th bit is set:
         # return False
@@ -21,6 +50,13 @@
         # return True
 
 # function main_code(SAM_file):
+    ```
+    #Parameters: SAM_file
+    #This function will contain the code that does all of the processing.
+
+    #Returns: None
+    ```
+
     # open UMI file for reading
         # store UMIs in list
 
@@ -88,3 +124,6 @@
 
     # the buffer/flush/write logic using the chromosome will not write the final chromosome out to the file because there's no "new" chromosome to look at (since its the last line)
     # therefore outside the file for loop, just write what is left in the dictionary (which contains all of the last chromosome's deduped records)
+
+# if __name__ == "__main__":
+    # add argparse arguments
