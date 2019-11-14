@@ -1,0 +1,147 @@
+# problem
+We need to remove PCR duplicates. The duplicates will have these characteristics:
+  1. Same chromosome
+    --found with RNAME (SAM col 3)
+  2. Same strand
+      --found with FLAG (SAM col 2)
+  3. Same starting position
+    --found with POS (SAM col 4)
+    --Soft clipping can make this hard to figure out!
+  4. Same UMI
+    --found with QNAME (SAM col 1)
+
+Bash script:
+    Sort the SAM file using samtools by UMI and then chromosomal coordinates.
+
+Python script:
+
+# modules to load
+argparse - to bring in options from bash command
+  samfile = the SAM file to be de-duped
+  UMIfile = the file of a list of UMIs, if they do not match the entry discard the entry
+  Randomer = if present, the algorithm will generate a list of Randomers
+  SE = if present, single-end reads
+  PE = if present, paired-end reads
+  w = if present, write duplicates to file
+  name = filename for deduplicated sam file
+
+UMI_dict: a list of UMIs. Generated from UMIfile or Randomer()
+
+FUNCTIONS
+create series of functions that return True or False, if all are
+True, discard the duplicate with the lowest quality score.
+
+def randomers(samfile, dictionary):
+  """Generates a dictionary of randomers from the SAM file. Takes a filehandle
+  and an empty dictionary as arguments and fills the dictionary with randomers."""
+
+def match_UMI(UMIL1R1, UMIL2R1, UMIL1R2 = None, UMIL2R2 = None):
+  """A function that takes two UMIs (QNAME field from SAM file) as arguments and returns True if the two
+  UMI's match, and False if they do not. R2 UMIs are set to None as default,
+  and will only be used if a paired-end read SAM file is being processed.
+  Input from SAM col 1: (AAAA, AAAA, None, None) returns True.
+  Input from SAM col 1: (AAAA, AATT, None, None) returns False.
+  Input from SAM col 1: (AAAA, AAAA, TTTT, TTTT) returns True.
+  Input from SAM col 1: (AAAA, AATT, TTTT, TTAA) returns False."""
+
+def match_strand(flagL1R1, flagL2R1, flagL1R2 = None, flagL2R2 = None):
+  """A function that takes two bitwise FLAGs (column 2) as arguments, and
+  returns True if they match and False if they do not.
+  Input from SAM col 2: (16, 16, None, None) returns True.
+  Input from SAM col 2: (16, 0, None, None) returns False.
+  Input from SAM col 2: (16, 16, 16, 16) returns True.
+  Input from SAM col 2: (16, 0, 16, 16) returns False."""
+
+def match_chromosome(chromosomeL1R1, chromosomeL2R1, chromosomeL1R2 = None, chromosomeL2R2 = None):
+  """A function that takes two chromosome names (RNAME field from SAM file) as
+  arguments and returns True if the two chromosome names match and False if
+  they do not.
+  Input from SAM col 3: (2, 2, None, None) returns True.
+  Input from SAM col 3: (1, 2, None, None) returns False.
+  Input from SAM col 3: (1, 1, 1, 1) returns True.
+  Input from SAM col 3: (1, 2, 1, 2) returns False."""
+
+def match_position(read_direction, positionL1R1, CIGARL1R1, positionL2R1, CIGARL2R1, positionL1R2 = None, CIGARL1R2 = None, positionL2R2 = None, CIGARL2R2 = None):
+  """A function that takes as arguments the position and CIGAR strings from
+  two lines in a SAM file. The function will account for softclipping from the
+  CIGAR strings and update the values of the position variables. The function
+  will then return True if the position variable values are the same, and False
+  if they are not.
+
+  If "S" is the first letter(not character!) in the string we will have
+  to adjust the read for soft-clipping when read direction is forward. If "S" is the last character in the string, this function will adjust the read position for soft clipping based on the last set of numbers when the read direction is reverse.
+  Input from SAM col 2, 3, 5: (0, 15, 2S15M, 13, 17M, None, None, None, None) returns True.
+  Input from SAM col 2, 3, 5: (0, 15, 17M, 15, 2S15M,  None, None, None, None) returns False.
+  Input from SAM col 2, 3, 5: (16, 15, 17M2S, 13, 17M, 15, 13M, 15, 13M) returns True.
+  Input from SAM col 2, 3, 5: (16, 15, 17M2S, 15, 19M, 40, 20M, 40, 20M) returns False."""
+  """
+
+# Error messages
+If both or neither Randomer/UMIfile are specified, abort w/ Error message
+If both or neither PE/SE are specificed, abort w/Error message
+
+# determine which algorithm option to use based on argparse inputs
+If w is present, initialize duplicates.sam and unknowns.sam
+Generate dictionary of UMIs - if UMIfile is present, generate from that. If
+Randomer is present, loop through file once to extract them into a dictionary.
+
+
+Initialize samfile_deduped.sam
+
+
+# Deduping
+If SE is present we will be going two lines at a time using readline(). If PE
+is present, we will be going four lines at a time. The main algorithm will be
+written assuming SE is specified.
+
+When restarting from Deduping, the second line in the set will become the first line,
+and the next line in the SAM file will become the second line in the set. If
+UMIfile is present, and the QNAME does not match any keys in UMI_dict, it is
+written to unknown.sam and the next line read in.
+
+  L1R1 = first line in set
+  L2R1 = second line in set
+
+  if PE is specified:
+  L1R2 = third line in set
+  L2R2 = fourth line in set
+
+  if line starts with "@" ignore and move onto next line until both (or all four in the case of PE reads) are valid SAM entries.
+
+  Split the strings into lists. List position will be as follows:
+    0 =	QNAME	String	Query template NAME
+    1 = FLAG	Int	bitwise FLAG
+    2 = RNAME	String	References sequence NAME
+    3 = POS	Int	1- based leftmost mapping POSition
+    4 = MAPQ	Int	MAPping Quality
+    5 = CIGAR	String	CIGAR String
+    6 = RNEXT	String	Ref. name of the mate/next read
+    7 = PNEXT	Int	Position of the mate/next read
+    8 = TLEN	Int	observed Template LENgth
+    9 = SEQ	String	segment SEQuence
+    10 = QUAL	String	ASCII of Phred-scaled base QUALity+33
+
+If UMIfile is present, L1R1 and L2R1 are checked. If they are not in the UMI dictionary,
+that line is written to unknown.sam
+Use match_UMI(L1R1[0], L1R2[0]), if they return False, write L1R1 to
+samfile_deduped.sam, continue to the next line in the SAM file and restart from
+Deduping. If it returns True, continue.
+
+Use match_chromosome(L1R1[2], L1R2[2]), if this function returns False, write
+L1R1 to samfile_deduped.sam, continue to the next line in the SAM file and
+restart from Deduping. If it returns True, continue.
+
+Use match_strand(L1R1[1], L2R1[1]), if this function returns False, write L1R1
+to samfile_deduped.sam, continue to next line in the SAM file and restart from
+Deduping. If it returns True, continue.
+
+Use match_position(L1R1[2], L1R2[2]), if this function returns False, write L1R1
+to samfile_deduped.sam, continue to next line in the SAM file and restart from
+Deduping. If it returns True, continue.
+
+If all functions have returned True, compare QSCORES (L1R1[4] and L2R1[4]), and
+keep the read with the highest number. If they are equivalent, discard L2R1.
+Write discarded entry to duplicates.txt if that option was selected. Continue
+from Deduping with line that was kept as L1R1.
+
+After reaching the end of the SAM file, close SAM file and any open files.
