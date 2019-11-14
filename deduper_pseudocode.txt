@@ -17,13 +17,12 @@ Python script:
 
 # modules to load
 argparse - to bring in options from bash command
-  samfile = the SAM file to be de-duped
-  UMIfile = the file of a list of UMIs, if they do not match the entry discard the entry
-  Randomer = if present, the algorithm will generate a list of Randomers
-  SE = if present, single-end reads
-  PE = if present, paired-end reads
-  w = if present, write duplicates to file
-  name = filename for deduplicated sam file
+-f, --file: required arg, absolute file path to SAM file
+-p, --paired: optional arg, designates file is paired end (not single-end)
+-u, --umi: optional arg, designates file containing the list of UMIs (unset if randomers instead of UMIs)
+-h, --help: optional arg, prints a USEFUL help message
+-w, --write: optional arg, writes duplicate entries to a separate file
+-d, --destination: optional arg, writes output files to a specified filepath
 
 UMI_dict: a list of UMIs. Generated from UMIfile or Randomer()
 
@@ -81,22 +80,21 @@ If both or neither Randomer/UMIfile are specified, abort w/ Error message
 If both or neither PE/SE are specificed, abort w/Error message
 
 # determine which algorithm option to use based on argparse inputs
-If w is present, initialize duplicates.sam and unknowns.sam
-Generate dictionary of UMIs - if UMIfile is present, generate from that. If
-Randomer is present, loop through file once to extract them into a dictionary.
+If -w is present, initialize duplicates.sam and unknowns.sam
+Generate dictionary of UMIs if -u is set.
 
 
 Initialize samfile_deduped.sam
 
 
 # Deduping
-If SE is present we will be going two lines at a time using readline(). If PE
+If -p is not present we will be going two lines at a time using readline(). If -p
 is present, we will be going four lines at a time. The main algorithm will be
-written assuming SE is specified.
+written assuming -p is not specified.
 
 When restarting from Deduping, the second line in the set will become the first line,
 and the next line in the SAM file will become the second line in the set. If
-UMIfile is present, and the QNAME does not match any keys in UMI_dict, it is
+-u is present, and the QNAME does not match any keys in UMI_dict, it is
 written to unknown.sam and the next line read in.
 
   L1R1 = first line in set
@@ -121,8 +119,9 @@ written to unknown.sam and the next line read in.
     9 = SEQ	String	segment SEQuence
     10 = QUAL	String	ASCII of Phred-scaled base QUALity+33
 
-If UMIfile is present, L1R1 and L2R1 are checked. If they are not in the UMI dictionary,
+If -u is present, L1R1 and L2R1 are checked. If they are not in the UMI dictionary,
 that line is written to unknown.sam
+
 Use match_UMI(L1R1[0], L1R2[0]), if they return False, write L1R1 to
 samfile_deduped.sam, continue to the next line in the SAM file and restart from
 Deduping. If it returns True, continue.
