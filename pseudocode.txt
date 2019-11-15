@@ -28,23 +28,51 @@ If the SAM record does not contain a known UMI, the record will be discarded. No
       append UMIs from file into known_UMI
   return known_UMI
 
-Unit Test: print(get_UMI)
+Unit Test: get_UMI()
 [AACGCCAT, AAGGTACG ,AATTCCGG, ACACAGAG, ACACTCAG...etc]
 
-def parsing_QNAME(QNAME1, QNAME2):
-```This function takes in two parameters: The QNAME taken from element current_record[0] & next_record[0].
+def parsing_QNAME(QNAME):
+```This function takes in one parameter: The QNAME taken from element [0] in the record lists.
 Since QNAME contains a long string, delimited by ":", this function will be used to parse thru the QNAME to find the actual UMI string. Will return true if
 two UMIs match each other```
 # i.g) NS500451:154:HWKTMBGXX:1:11101:15364:1139:GAACAGGT <- we want to split by ":" to isolate the UMIs
 
-    QNAME1 = QNAME1.split(":")
-    QNAME2 = QNAME2.split(":")
+    QNAME = QNAME.split(":")
+    *this will turn QNAME into a list, split by the ":" symbol
 
-    access the last element in the new lists that holds the UMIs
+    return the last element in the new list that holds the UMIs
+    i.g) QNAME[7]
 
-    if UMI in QNAME1 == UMI in QNAME2:
-        return True
+Unit test: parsing_QNAME(NS500451:154:HWKTMBGXX:1:11101:15364:1139:GAACAGGT)
+return: GAACAGGT
 
+def forward(CIGAR_str, POS):
+```This function is called if the bitwise flag is NOT 16, indicating that the record is a forward read.
+This function accounts ONLY for soft-clipping on the left-most side of the CIGAR string```
+
+    while the CIGAR string is not empty
+    while CIGAR_str != " "
+      regex out the Number and Letter on the 5' end
+      Subtract # pertaining to S's from the starting Position
+      return POS
+
+Unit test: forward(3S20M3I100N2D45M7S, 700)
+return: 697
+
+def reverse_comp(CIGAR_str, POS):
+```This function is called if the bitwise flag of IS 16, indicating that the record is a reverse complement read.
+This function accounts for Insertions, Deletions and soft-clipping on the right-most side of the CIGAR string```
+
+    while the CIGAR string is not empty
+    while CIGAR_str != " "
+      regex out the Number and Letter
+      Sum up # pertaining to M's, N's, D's
+      Ignore # pertaining to I's (Insertions do nothing)
+      Subtract # pertaining to S's (on the right side: 3M5N2S)
+      return POS
+
+Unit test: reverse(3S20M3I100N2D45M7S, 20)
+return:
 
 
 #reading in records of the SAM file, 1 record at a time, each record read in will be compared to the record stored in that list
@@ -68,9 +96,9 @@ with open(sorted.sam, "rt") as file:
 
       L2 = read in the next record of the SAM file
 
-    4) append L1 record to current_record[], use .readline() and .rstrip(" ")
+    4) append reference record to current_record[], use .readline() and .rstrip(" ")
 
-       append L2 record to next_record[], use. readLine() & .rstrip(" ")
+       append next record to next_record[], use. readLine() & .rstrip(" ")
 
        *this will store records into a list, partitioned by their columns parameters (QNAME, BITWISE, PLEN, ETC)
 
@@ -78,19 +106,40 @@ with open(sorted.sam, "rt") as file:
     if L1 == "":
         break
 
-    6) check to see if current_record[0] contains the a known UMI within its QNAME:
-    (the logic is to efficiently break out of the loop at the first condition if QNAME is not in UMI_list[])
-    if current_record[0] is not UMI_list:
-        read in a new (next) record
-        discard this record
-        iterate over a new record, start at the top of this loop again
+    6) call on parsing_QNAME() and check to see if current_record[0] or next_record[0] contains the a known UMI:
+      (the logic is to efficiently break out of the loop at the first "if" condition if QNAME is not in UMI_list[])
+      if parsing_QNAME(current_record[0]) is not UMI_list:
+          discard old this records
+          iterate over a new record, start at the top of this loop again
+          append new record into current_record[]
+          append following record to next_record[]
 
-          7) create a nested if statement that calls parsing_QNAME(QNAME1, QNAME2) function.
-          if parsing_QNAME(current_record[0], next_record[0]) == true
-          move to next if statement
 
-              8) another nested-if statement that checks if POS column
+  7) if parsing_QNAME(current_record[0]) == parsing_QNAME(next_record[0]) and  current_record[0] is in UMI_list[]:
+      move to the next nested-if statement, the two records have passed the first parameters for being PCR duplicates because:
+      * they have the same UMI and the UMI is one of the 96 indexes in the UMI_list
+
+
+              8) another nested if statement that checks if chromosome (RNAME) column are the same between current_record & next_record
               if current_record[3] == next_record[3]:
-              move on to the next condition 
+              move on to the next condition,
 
-    L2 = read in the second record in the sam file (will compare)
+
+                      9) if (current_record[1] AND next_record[1] & 16) != 16 AND forward(current_record[5], current_record[3]) == forward(next_record[5], next_record[3]):
+                      for PCR duplication to occur, record 1 and record 2 MUST both have the same directionality
+                      call on the forward() function that only looks at soft-clipping on the left-most of the CIGAR string
+                      this is the last condition that checks for PCR duplication for a FORWARD read, file out
+
+                      file out current_record
+
+                      empty/clear next_record[]
+
+
+                      10) else if: (current_record[1] AND next_record[1] & 16) == 16 AND reverse_comp(current_record[5], current_record[3]) == reverse_comp(next_record[5], next_record[3]):
+                      call on the reverse_comp() function that accounts for CIGARs with Insertions, Deletions and soft-clipping on the right-most side
+
+                      file out current_record
+
+                      empty/clear next_record[]
+
+    iterate over the next record, to be stored in next_record[]  
