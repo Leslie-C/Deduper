@@ -22,37 +22,53 @@ General Workflow:
 __________
 Functions:
 
+1) Take in a record and parses the string to extract the UMI, Chromosome, Cigar String, and Left-most Position.
+   -Extract Chromosome number
+   -Extract out UNI and check to see if the UMI is valid.
+   -Check bitwise flag to see if strand is mapped in a forward or reverse direction.
+   -Calculate the 5' position based off of the directionality accounting for soft-clipping and Indels for reverse complement strands
+   def get_tuple(Record_string)
+   ````Take in a record's header and create a tuple containing the UMI, Chromosome and 5' Position```
+   Return: tuple("Direction", "Chromosome","UMI", "5' Position")
+
+   Example Input: "NS500451:154:HWKTMBGXX:1:11101:15364:1139:GAACAGGT 2       5       119767599       36      66M     =       119767642       109     CCCCAAACAAGTGGTCCCCAAAAGAGACAGCCTCAAAATGGTCTAAGAAGCTGGCATAAAGGTCAG      6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEAEEEEEAEEEEEEEEEEEE      MD:Z:66 NH:i:1  HI:i:1  NM:i:0  SM:i:36 XQ:i:40 X2:i:0  XO:Z:CU XG:Z:A"
+   Example Output: ("Forward", "5", "GAACAGGT", "119767599")
+
+
+Everything in-between % are function ideas that were combined into the function above:
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 1) Check to see if UMI's are valid and are the same.
 
-def check_UMI's(Read_1[1],Read_2[2]):
-  '''Takes in the portion of the sam record containg the UMI. Parsing must
-  be done to isolate the UMI sequence and then check if they are valid and
-  are the same'''
-  -split input by ":" and keep then check the UMI chunk
-  Return: True or False
+def get_UMI's(Read_1[1]):
+  '''Takes in the portion of the sam record containing the UMI. Parsing must
+  be done to isolate the UMI sequence. The Function will return the UMI sequence'''
+  -split input by ":"
+  Return: string (*UMI Sequence*)
 
-Example Input: NS500451:154:HWKTMBGXX:1:12434:14236:1129:GAACAGGT, NS500451:154:HWKTMBGXX:1:11101:15364:1139:GAACAGGT
-Example Output: True
+Example Input: NS500451:154:HWKTMBGXX:1:12434:14236:1129:GAACAGGT
+Example Output: GAACAGGT
 
 
-2) Bitwise flag comparison to check if strands are aligned in the same direction and returns the alignment direction.
+2) Bitwise flag check if a strand is aligned forward or reverse.
 
-def bitwise_direction(Read_1[*bitwise_flag_index*], Read_2[*bitwise_flag_index*]):
-  '''Check to see if bitwise flag indicates the reads aligned in the same direction'''
-  Return: (True or False),(forward, reverse, or NA)
+def get_bitwise_direction(Read_1[*bitwise_flag_index*]):
+  '''Check to see if bitwise flag indicates the reads aligned in the same direction
+     Forward == True and Reverse == False'''
+  Return: bool (True or False)
 
-Example Input: 83,99
+Example Input: 83
 Example Output: False
 
-3) Calculate the 5' Starting position and check if matches.
+3) Calculate the 5' Starting position.
 
-def check_start_position(Read_1[*CIGAR_String_Index*], Read_2[*CIGAR_String_Index*], Read_1[*Mapping_Position*], Read_2[*Mapping_Position*])
-  '''Check if position that the two strands map to are the same, account  for
-  insertions and deletions for only reverse complemented strands'''
-  Return: True or False
+def get_start_position(Read_1[*CIGAR_String_Index*], Read_1[*CIGAR_String_Index*]TRUE or FALSE)
+  '''Calculate the 5' starting position, accounting for record directionality.
+  Insertions and deletions adjusted for only reverse complemented strands'''
+  Return: integer (5' Starting Position)
 
 Example Input: 66M, 62M4S, 64949467, 64949463
 Example Output: True
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 ___________
 Pseudocode:
@@ -69,30 +85,34 @@ Open Index File and use a for loop to iterate through STL96.txt and store every 
     -Input Sam file to read from
     -Output Sam file to read from
 
-Define an empty array that will store the previous read for comparison with the current read
-previous_line[]
+Define a dictionary to store the unique properties of each record of a chromosome.
+The dictionary will store unique reads and cross checked against a new record that have been read in.
+-Forward_Dict = dict()
+-Reverse_Dict = dict()
+-Keys will be a data structure storing UMI, Chromosome, 5' Position
+-Values will be an arbitrary variable.
 
-Read in one line at a time from a file
-for current_line in file:
+-Set previous chromosome to 0
 
-  -Set a write to file bool variable to True
+for current_line in file: #Read in one line at a time from a file#
 
-  -Read in 1 line and split the line by white space and store it as a vector
+  -Extract chromosome value from current_line and store as a variable.
 
-  -> if check_UMI() function returns TRUE i.e. the UMIs are valid and are the same, Check if chromosomes are the same using the sam header index:
+  -> if extracted chromosome value is different than the previous chromosome value:
+    -Flush the Forward_Dict and Reverse_Dict. 
 
-    -> if bitwise flags indicate both reads are aligned normally or both reverse complement (Using bitwise_direction() function):
+  -Pass the current_line variable into the get_tuple() function and save function output as a tuple variable.
+  -Set a direction variable to later be used to identify which dictionary to compare the tuple with.
 
-      -> if the starting positions are the same, using the check_start_position() function:
+  -> if direction is forward, check to see if the tuple is in the forward dictionary
 
-          -Set the write to file bool variable to False
+    -> if tuple is not in forward dictionary, append current_line to outfile
 
-  -> if write to file variable is true:
+  -> else if direction is reverse, check to see if the tuple is in the reverse dictionary
 
-      -Write the line to the output file.
+    -> if tuple is not in reverse dictionary, append current_line to outfile.
 
-  -Set the previous read array to the current read array if there was no PCR duplication if there was gene duplication don't set current line as previous line.
-  previous_line = current_line
+  -Set previous chromosome variable to current chromosome variable
 
 Close All Files:
   -Input Sam file to read from
