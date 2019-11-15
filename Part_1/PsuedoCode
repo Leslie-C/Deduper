@@ -25,12 +25,12 @@ Def Direction_Checker(one Sam aligned read):
 Def UMI_Checker():
 ##  ##
 
-Def Chrom_Checker():
+Def Chrom_Checker(one Sam aligned read cigar string):
 ## ##
 
-Def Forward_adjust_start (one Sam aligned read cigar string and one 0 based left most start position):
+Def Forward_adjust_start (one Sam aligned read):
 ##This function takes the cigar string from one forward read and its start position and returns an adjusted start position.##
-•	Grab start position number, set it as count
+•	Grab start position number from SAM column 4, set it as count
 •	Grab cigar string by column number
 •	Grep for first number letter combination
 	- If letter is S, subtract the number preceding it from count.
@@ -42,7 +42,7 @@ Unit Test - Try the following cigar strings and start position.  Print the count
 
 Def Reverse_adjust_start (one Sam aligned reverse read):
 This function takes the cigar string from one reverse read and its start position and returns an adjusted start position.
-•	 Grab start position number, set it as count
+•	Grab start position number, set it as count
 •	Grab cigar string by column number
 •	In a loop Grep for each number- letter combination
 	- If letter is S preceeded by a letter and a number, add the number preceding it to count. 
@@ -58,14 +58,14 @@ Unit Test - Try the following cigar strings and start position.  Print the count
 	start = 0, cigar = 5M,10N,5M, adjusted = 20
 	start = 0, cigar = 1S5M10N4M, adjusted = 20
 	
-########Pseudo-Code:###########
+########  Pseudo-Code:  ###########
 -Input is via a bash slurm script which collects the arg-parse arguments.
 
 1.) #### Install arg-parse function ####
 Return – ability to set arg-parse
 Unit Test – See Arg parse function below. If Arg-Parse function works, it’s installed.
 
-2.) #### Install conda environment####
+2.) #### Install conda environment  ####
 Return – ability to read python script
 Unit Test – Slurm shell should be able to read and respond to a python print(“foo”) script and will display bgmp -env3
 
@@ -97,7 +97,8 @@ Unit Test – write first full read from input tester file to output file.  Disp
 ######Big Loop#######
 6.) ####Open1st and 2nd Read####
 Initialize a list Good files.
-For each line in the file, if begins with "@HD", "@SD" or   2nd and 3rd, do the same.
+For each line in the file, if the line begins with "@", skip it and move on.
+For each line not skipped
 Open 3rd and 4th, do the same.
 Continue with last in a pair and the next in line, until done.  How?
 
