@@ -20,16 +20,18 @@ Properly formated expected output sam file:
 ######Functions:#########
 
 Def Direction_Checker(one Sam aligned read):
+## A function to check the strand on which a read is directed.
 ##Check read##
 
-Def UMI_Checker():
+Def UMI_Checker(one Sam aligned read):
+## A function to find the UMI of a read
 ##  ##
 
 Def Chrom_Checker(one Sam aligned read cigar string):
-## ##
+## A function to find the chromosome on which a read resides
 
-Def Forward_adjust_start (one Sam aligned read):
-##This function takes the cigar string from one forward read and its start position and returns an adjusted start position.##
+Def Plus_adjust_start (one Sam aligned plus read):
+##A function that takes the cigar string from one forward read and its start position and returns an adjusted start position.##
 •	Grab start position number from SAM column 4, set it as count
 •	Grab cigar string by column number
 •	Grep for first number letter combination
@@ -40,8 +42,8 @@ Unit Test - Try the following cigar strings and start position.  Print the count
 	start = 2, cigar = 2S5M, adjusted = 0
 	start = 37, cigar = 1S3M7N4M, adjusted = 36
 
-Def Reverse_adjust_start (one Sam aligned reverse read):
-This function takes the cigar string from one reverse read and its start position and returns an adjusted start position.
+Def Minus_adjust_start (one Sam aligned minus read):
+## A function to take the cigar string from one reverse read and its start position and find an adjusted start position.
 •	Grab start position number, set it as count
 •	Grab cigar string by column number
 •	In a loop Grep for each number- letter combination
@@ -85,7 +87,7 @@ Return – A slurm script calling a correctly worded python script with arg flag
 	-print correct file name.sam
 
 4.) #### Open the input SAM file####
-Open as read.
+Open as read given in ArgParse.
 Return- opened file
 Unit Test – display tester input sam file with cat command piped to head.
 
@@ -95,16 +97,31 @@ Return -opened, writable file.
 Unit Test – write first full read from input tester file to output file.  Display contents with cat command.
 
 ######Big Loop#######
-6.) ####Open1st and 2nd Read####
-Initialize a list Good files.
-For each line in the file, if the line begins with "@", skip it and move on.
-For each line not skipped
-Open 3rd and 4th, do the same.
-Continue with last in a pair and the next in line, until done.  How?
+6.) ####Set variables for loop####It .
+	a. -For each line in the input file, if the line begins with "@", copy it  to output file and move on.
+	b.- copy the first read that does not have an @ into the output file
+Return - An output file labelled
+	
+7.) ####start read checker loop####
+#This section runs through the reads and checks to see if they match the last read copied into the outfile.  If they match, they are duplicates and are not added to the output file.  If they do not match they are added to the outfile and the next read after the new addition is checked, restarting the loop, until all are done.
+  
+  For read copied into out file, do the following.  #This means that duplicates are skipped and the loop restarts at the next new (non-duplicated) read.
+	For the next read in the input file do the following
+		1. Check Chromosome with Chrom_Checker function.
+		2. Make a variable. Chrom = the chromosome number resulting from 1.
+		3. Check UMI with Umi_Checker function
+		4. Check UMI against UMI_List for quality assurance.  If it doesn't match anything in list place in <Output_File_Name>_mismatched_UMI.SAM.
+		5. Make a variable UMI = The UMI found in step 3.
+		6. Check Direction with Direction_Checker. 
+		7. Make a variable for forward or reverse. Strand = + or Strand =-
+			a.) If it's use Plus_adjust_start function to find adjusted start.  
+			b.) If it's not forward use the Minus_adjust_start function.
+		8. Make a varaiable. Start = the start position found with one of the two adjust_start functions.
+		9. For the next read in the SAM file, do the following.  If at any point it does not match go to 10.
+			a.) Use the Chrom_checker to check the chromosome the read is on.  If it matches the Chrom variable continue.  If not go to step 10.
+			b.) Use the UMI_checker to find the UMI associated with the read.  If it matches UMI variable continue.  If not go to 10.
+			c.) Use Direction_Checker to check direction. If it matches Strand variable continue.  If not go to 10
+			d.) If Strand matches and strand is + use Plus_start to determine adjusted start position.  If matches start continue loop at #9 with next read.
+		10. When a read is found that does not match copy the read into the out file
 
-Loop to check pairs
-###Determine Direction of Read####
-Use orientation ()
-If forward go to forward loop.
-Else go to reverse loop.
 """
