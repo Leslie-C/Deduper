@@ -19,10 +19,17 @@ Properly formated expected output sam file:
 
 ######Functions:#########
 
-Def Direction_Checker(one Sam aligned read):  Unless find a samtool that provides a reverse file and a forward file
+Def Direction_Checker(one Sam aligned read):
+##Check read##
+
+Def UMI_Checker():
+##  ##
+
+Def Chrom_Checker():
+## ##
 
 Def Forward_adjust_start (one Sam aligned read cigar string and one 0 based left most start position):
-This function takes the cigar string from one forward read and its start position and returns an adjusted start position.
+##This function takes the cigar string from one forward read and its start position and returns an adjusted start position.##
 •	Grab start position number, set it as count
 •	Grab cigar string by column number
 •	Grep for first number letter combination
@@ -90,7 +97,7 @@ Unit Test – write first full read from input tester file to output file.  Disp
 ######Big Loop#######
 6.) ####Open1st and 2nd Read####
 Initialize a list Good files.
-For each line in the file, if begins with "@HD", "@  2nd and 3rd, do the same.
+For each line in the file, if begins with "@HD", "@SD" or   2nd and 3rd, do the same.
 Open 3rd and 4th, do the same.
 Continue with last in a pair and the next in line, until done.  How?
 
