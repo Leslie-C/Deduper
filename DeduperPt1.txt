@@ -1,0 +1,124 @@
+Deduper -- Part 1 (Pseudocode)
+
+Anthony Pulvino(11/10/19)
+
+	Problem:
+-------------------
+PCR duplicates arise when a second molecule of the same nucleic acid sequence attaches itself to the same well in the flow cell. The result of which is a second (set of) PCR reaction(s) of the same molecule. Removing these duplicates allows for a more accurate understanding of coverage. It also will allow for more AT-rich, smaller molecules that may have become more enriched during the PCR reactions (a frequently occurring bias).
+
+
+
+
+	Write Examples:
+------------------------
+
+	INPUT (DUPLICATED):
+----------------------------
+
+
+FORWARD:
+-----------
+NS500451:154:HWKTMBGXX:1:11101:94095:71756:AACGCCAT	0    2    76875967    36    15M470N56M    *    0    0    GTGGGATGAGGCGCTCTTTTATATTGAGTTGGGCTGTGCAGGAGTCTTTTCCCACTTCATTGACGGCGTAG    6<EEEEEEEEEEEEAEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE    MD:Z:71    NH:i:1    HI:i:1    NM:i:0    SM:i:36    XQ:i:40    X2:i:0    XO:Z:UU    XS:A:-    XG:Z:A
+NS500451:154:HWKTMBGXX:1:11101:69992:67325:AACGCCAT	0    2    76875967    36	15M470N56M    *    0	0	 GTGGGATGAGGCGCTCTTTTATATTGAGTTGGGCTGTGCAGGAGTCTTTTCCCACTTCATTGACGGCGTAG	6<EEEEEEEEEEEEAEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE    MD:Z:71    NH:i:1	HI:i:1    NM:i:0    SM:i:36    XQ:i:40    X2:i:0	XO:Z:UU    XS:A:-	 XG:Z:A
+
+REVERSE:
+-----------
+NS500451:154:HWKTMBGXX:1:11101:94095:71756:ATGGCGTT	0    2    76875967    36    15M470N56M    *    0    0    CTACGCCGTCAATGAAGTGGGAAAAGACTCCTGCACAGCCCAACTCAATATAAAAGAGCGCCTCATCCCAC    6<EEEEEEEEEEEEAEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE    MD:Z:71    NH:i:1    HI:i:1    NM:i:0    SM:i:36	XQ:i:40    X2:i:0    XO:Z:UU    XS:A:-    XG:Z:A
+NS500451:154:HWKTMBGXX:1:11101:69992:67325:ATGGCGTT	0    2    76875967    36    15M470N56M    *    0    0    CTACGCCGTCAATGAAGTGGGAAAAGACTCCTGCACAGCCCAACTCAATATAAAAGAGCGCCTCATCCCAC    6<EEEEEEEEEEEEAEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE    MD:Z:71    NH:i:1    HI:i:1    NM:i:0    SM:i:36	XQ:i:40    X2:i:0    XO:Z:UU    XS:A:-    XG:Z:A
+
+
+
+	OUTPUT (DEDUPLICATED):
+-------------------------------
+
+NS500451:154:HWKTMBGXX:1:11101:94095:71756:AACGCCAT	0    2    76875967    36    15M470N56M    *    0    0    GTGGGATGAGGCGCTCTTTTATATTGAGTTGGGCTGTGCAGGAGTCTTTTCCCACTTCATTGACGGCGTAG    6<EEEEEEEEEEEEAEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE    MD:Z:71    NH:i:1    HI:i:1    NM:i:0    SM:i:36    XQ:i:40    X2:i:0    XO:Z:UU    XS:A:-    XG:Z:A
+NS500451:154:HWKTMBGXX:1:11101:94095:71756:ATGGCGTT	0    2    76875967    36    15M470N56M    *    0    0    CTACGCCGTCAATGAAGTGGGAAAAGACTCCTGCACAGCCCAACTCAATATAAAAGAGCGCCTCATCCCAC    6<EEEEEEEEEEEEAEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE    MD:Z:71    NH:i:1    HI:i:1    NM:i:0    SM:i:36	XQ:i:40    X2:i:0    XO:Z:UU    XS:A:-    XG:Z:A
+
+
+
+	Pseudocode:
+------------------------
+
+
+	
+1. Sort the file using the 'samtools sort' so that each of the files is sorted by chromosome (chr1, chr2, chr3, etc) and position.
+
+2. Craft argparse parameters so that you're able to call each of the SAM files required for deduplicating.
+
+
+3. Store UMIs into a single 'UMIdict' parsing through the STL96.txt file
+
+
+
+
+3. Parse through the (bit) FLAG (COL2) for all of the files.
+		
+		Store in two different dictionaries 5' position, UMI and chromosome as the key and a number as the value.
+		
+Read in lines from the SAM files. Take out the chromosome number and set it to a variable.
+If the chromosome number is the same as the next one then flush both dictionaries (PlusDict and MinusDict)
+
+set a variable "chromosome" to zero
+
+Iterate over each line of the SAM file and extract 5' position, UMI, and chromosome and store them in a dictionary as a key.
+
+Write a conditional that checks whether or not the plus or minus strand is being read.
+	If the forward strand is being read check the dictionary to see if the key (extract 5' position, UMI, and chromosome). If it's not append the line being read to an output file.
+	Else if the direction is reverse check the reverse dictionary key of (extract 5' position, UMI, and chromosome) append the line to a different output file
+	
+	Set the variable "chromosome" to the current chromosome variable being read
+	
+Close all of the files
+
+
+
+		
+ 
+	
+
+		
+
+
+
+
+
+	Determine high level functions:
+---------------------------------------------------
+
+def get_list(record)
+'''reads a record and stores UMI, position, and chromosome number'''
+return list("chromosome, UMI, position"), "plus or minus"
+
+Input:
+NS500451:154:HWKTMBGXX:1:11101:94095:71756:AACGCCAT	0    2    76875967    36    15M470N56M    *    0    0    GTGGGATGAGGCGCTCTTTTATATTGAGTTGGGCTGTGCAGGAGTCTTTTCCCACTTCATTGACGGCGTAG    6<EEEEEEEEEEEEAEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE    MD:Z:71    NH:i:1    HI:i:1    NM:i:0    SM:i:36    XQ:i:40    X2:i:0    XO:Z:UU    XS:A:-    XG:Z:A
+Output:("2", "AACGCCAT", "76875967"), plus
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
