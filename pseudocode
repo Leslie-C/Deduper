@@ -1,0 +1,107 @@
+
+--------------------------------------------------------------------------------
+
+Functions
+
+A function to take CIGARstring for the reverse strand and find the alignment start position
+
+def get_reverse_pos(input_list)
+For index in 1:length(CIGARlist) check for each of the following
+    If M in CIGARlist[index]:
+        set variable1 equal to the string of the CIGARlist[index]
+        set variable2 equal to variable1 strip M
+        Increment align_pos equal to int of variable2
+    If N in CIGARlist[index]:
+        set variable1 equal to the string of the CIGARlist[index]
+        set variable2 equal to variable1 strip N
+        Increment align_pos equal to int of variable2
+    If S in CIGARlist[index]:
+        check if CIGARlist at 0 equals CIGARlist at index:
+            set variable1 equal to regex match on CIGAR string for [0-9]+S
+            set variable2 equal to variable1 strip S
+            increment align_pos equal to int of variable 2
+        check if CIGARlist at the index of length CIGARlist -1 equals the value of CIGARlist of index
+            set variable3 equal to regex match on CIGAR string for $[0-9]+S
+            set variable4 equal to variable3 strip S
+            increment align_pos equal to int of variable 3
+    If D in CIGARlist[index]:
+        set variable1 equal to the string of the CIGARlist[index]
+        set variable2 equal to variable1 strip M
+        Set length_seq equal to int of variable2
+
+
+
+A function to grab the CIGARstring and separate it into a list of its components
+
+def getCIGAR(datastring)
+Use regex to pull out the cigar string, set = to variable. CIGAR string should follow 5 groups of characters and 5 tabs
+Use regex findall to search the string for [0-9]+[A-Z] and return a list, set equal to variable called CIGARlist
+return(CIGARlist)
+
+
+
+
+--------------------------------------------------------------------------------
+
+Pseudocode Details:
+
+create an empty dictionary
+import re (regular expressions)
+
+make an UMI dictionary
+
+open the file STL96.txt
+    count = 0
+    for each line in the file:
+        count += 1
+        set the UMI dictionary key to the line and the value equal to the count
+
+Use samtools to sort the sam file by chromosome
+
+Open the input sam file
+    open a new file called Deduped.sam in append mode
+    align_dic = {}
+    for line in sam file:
+        use regex group function to look for :numbers:numbers:(UMI):tab
+        check if UMI is in the dictionary
+            Use regex group to pull out the fourth column (left most alignment position) and set equal to a variable called align_pos
+            Use regex group to pull out the second column in line (one tab and one set of characters before it), set to variable flag
+            if the flag is == 16:
+                if so, use regex to pull out the cigar string, set = to variable. CIGAR string should follow 5 groups of characters and 5 tabs
+                Use regex findall to search the string for [0-9]+[A-Z] and return a list, set equal to variable called CIGARlist
+                For index in 1:length(CIGARlist) check for each of the following
+                    If M in CIGARlist[index]:
+                        set variable1 equal to the string of the CIGARlist[index]
+                        set variable2 equal to variable1 strip M
+                        Increment align_pos equal to int of variable2
+                    If N in CIGARlist[index]:
+                        set variable1 equal to the string of the CIGARlist[index]
+                        set variable2 equal to variable1 strip N
+                        Increment align_pos equal to int of variable2
+                    If S in CIGARlist[index]:
+                        check if CIGARlist at 0 equals CIGARlist at index:
+                            set variable1 equal to regex match on CIGAR string for [0-9]+S
+                            set variable2 equal to variable1 strip S
+                            increment align_pos equal to int of variable 2
+                        check if CIGARlist at the index of length CIGARlist -1 equals the value of CIGARlist of index
+                            set variable3 equal to regex match on CIGAR string for $[0-9]+S
+                            set variable4 equal to variable3 strip S
+                            increment align_pos equal to int of variable 3
+                    If D in CIGARlist[index]:
+                        set variable1 equal to the string of the CIGARlist[index]
+                        set variable2 equal to variable1 strip M
+                        Set length_seq equal to int of variable2
+                Check if the align_dic already has an entry with the key of UMI and a value equal to align_pos
+                    if so, break
+                Else: Set the key of align_dic as the value of the UMI dictionary at the UMI, and set the value equal to align_pos
+                    write the line of the sam file to Deduped.sam
+            else:
+                Use regex group to pull out the cigar string, set = to variable. CIGAR string should follow 5 groups of characters and 5 tabs
+                Use regex match to find [0-9]+S, set equal to variable called clipping
+                Increment align_pos by clipping
+                Check if the align_dic already has an entry with the key of UMI and a value equal to align_pos
+                    if so, break
+                Else: Set the key of align_dic as UMI, and set the value equal to align_pos
+                    write the line of the sam file to Deduped.sam
+        else:
+            break
