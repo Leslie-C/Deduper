@@ -1,0 +1,139 @@
+Point of Script
+
+Sequencing that is preceded by PCR results in a number of duplicated reads that come
+from a single molecule. To adjust for this, it is best to remove all of these
+duplicate sequences such that there is only one read per molecule. This script
+removes sequences that align to a reference at the same point while possessing
+the same molecular identifier.
+
+
+--------------------------------------------------------------------------------
+
+Functions
+
+A function to take CIGARstring for reads mapped to the reverse strand and return the proper alignment start position
+
+def get_reverse_pos(CIGARstring)
+    Use regex findall to search CIGARstring for [0-9]+[A-Z] and return a list, set equal to variable called CIGARlist
+    set variable length_spanned to zero
+    For index in 1:length(CIGARlist) check for each of the following
+        If M in CIGARlist[index]:
+            set variable1 equal to the string of the CIGARlist[index]
+            set variable2 equal to variable1 strip M
+            Increment length_spanned equal to int of variable2
+        else if N in CIGARlist[index]:
+            set variable1 equal to the string of the CIGARlist[index]
+            set variable2 equal to variable1 strip N
+            Increment length_spanned equal to int of variable2
+        else if D in CIGARlist[index]:
+            set variable1 equal to the string of the CIGARlist[index]
+            set variable2 equal to variable1 strip M
+            Set length_spanned equal to int of variable2
+        else if S in CIGARlist[index]:
+            check if CIGARlist at length(CIGARlist) -1 is equal to CIGARlistat index
+                set variable1 equal to the string of CIGARlist[index]
+                set variable2 equal to variable1 strip S
+                increment length_spanned equal to int of variable 2
+    return(length_spanned)
+
+Sample Input:
+CIGARstring = 5S19M400N60M4S
+
+Expected output = 5 + 19 + 400 + 60 = 484
+
+--------------------------------------------------------------------------------
+
+Test File
+
+Sam file with duplicates
+#Incorrect UMI
+NS500451:154:HWKTMBGXX:1:11101:18996:1145:TTTTTTTT	0	2	130171653	36	40M1I30M	*	0	0	GTCTCTTAGTTTATTATAAACCAGCTTCATAGGCCACAGAGGAAAAAGGACTATATACATACAGCCTTTTG	6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEAEEEEEEEEEEEEEEEEEEEEEEEEEEE	MD:Z:53G16	NH:i:1	HI:i:1	NM:i:2	SM:i:36	XQ:i:40	X2:i:0	XO:Z:UU
+NS500451:154:HWKTMBGXX:1:11101:18996:1145:TTTTTTTT	0	2	130171653	36	40M1I30M	*	0	0	GTCTCTTAGTTTATTATAAACCAGCTTCATAGGCCACAGAGGAAAAAGGACTATATACATACAGCCTTTTG	6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEAEEEEEEEEEEEEEEEEEEEEEEEEEEE	MD:Z:53G16	NH:i:1	HI:i:1	NM:i:2	SM:i:36	XQ:i:40	X2:i:0	XO:Z:UU
+#Soft clipping on left, forward read
+NS500451:154:HWKTMBGXX:1:11101:25533:1187:GTTCACCT	0	2	76743835	36	4S67M	*	0	0	CTTGGTAACTTTCAGAGAATTAGTCACAACTTCTGAAGCAACCACAGTCCATGCAAGTCGACTGGTTTCTC	6AEEEEEEEEEEEEEEEEEEEEEEEAEEEEEEEEEEEEEEEEAEEEEEEE<EEEEEEEEEEEEEEEEEEEE	MD:Z:71	NH:i:1	HI:i:1	NM:i:0	SM:i:36	XQ:i:40	X2:i:0	XO:Z:UU
+NS500451:154:HWKTMBGXX:1:11101:25533:1187:GTTCACCT	0	2	76743835	36	4S67M	*	0	0	CTTGGTAACTTTCAGAGAATTAGTCACAACTTCTGAAGCAACCACAGTCCATGCAAGTCGACTGGTTTCTC	6AEEEEEEEEEEEEEEEEEEEEEEEAEEEEEEEEEEEEEEEEAEEEEEEE<EEEEEEEEEEEEEEEEEEEE	MD:Z:71	NH:i:1	HI:i:1	NM:i:0	SM:i:36	XQ:i:40	X2:i:0	XO:Z:UU
+#Soft clipping on right, reverse read
+NS500451:154:HWKTMBGXX:1:11101:6251:1098:ATCCATGG	16	2	76765947	36	66M5S	*	0	0	GGCGTTCCAAACCACGGTCATCTCTTCTTTGCTTACTTTAGTGACTTCTGGAGGATCAGGGCGGCCAGGTC	/<EEAEEEEEEEEAEEEEEEEEEEAEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE	MD:Z:71	NH:i:1	HI:i:1	NM:i:0	SM:i:36	XQ:i:40	X2:i:0	XO:Z:UU
+NS500451:154:HWKTMBGXX:1:11101:6251:1098:ATCCATGG	16	2	76765947	36	66M5S	*	0	0	GGCGTTCCAAACCACGGTCATCTCTTCTTTGCTTACTTTAGTGACTTCTGGAGGATCAGGGCGGCCAGGTC	/<EEAEEEEEEEEAEEEEEEEEEEAEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE	MD:Z:71	NH:i:1	HI:i:1	NM:i:0	SM:i:36	XQ:i:40	X2:i:0	XO:Z:UU
+#Undefined left most mapping position
+NS500451:154:HWKTMBGXX:1:11101:11995:1145:AGCTACCA	0	2	0	36	71M	*	0	0	TGCATAACTCGTGCTGGTTTCCTCCTTTGTGGGGACGTGATAGGTCGAGTACCTGAAGTCTCTTCTTCTGT	6<EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE	MD:Z:71	NH:i:1	HI:i:1	NM:i:0	SM:i:36	XQ:i:40	X2:i:0	XO:Z:UU
+NS500451:154:HWKTMBGXX:1:11101:11995:1145:AGCTACCA	0	2	0	36	71M	*	0	0	TGCATAACTCGTGCTGGTTTCCTCCTTTGTGGGGACGTGATAGGTCGAGTACCTGAAGTCTCTTCTTCTGT	6<EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE	MD:Z:71	NH:i:1	HI:i:1	NM:i:0	SM:i:36	XQ:i:40	X2:i:0	XO:Z:UU
+
+Expected Sam Output file
+NS500451:154:HWKTMBGXX:1:11101:25533:1187:GTTCACCT	0	2	76743835	36	71M	*	0	0	CTTGGTAACTTTCAGAGAATTAGTCACAACTTCTGAAGCAACCACAGTCCATGCAAGTCGACTGGTTTCTC	6AEEEEEEEEEEEEEEEEEEEEEEEAEEEEEEEEEEEEEEEEAEEEEEEE<EEEEEEEEEEEEEEEEEEEE	MD:Z:71	NH:i:1	HI:i:1	NM:i:0	SM:i:36	XQ:i:40	X2:i:0	XO:Z:UU
+NS500451:154:HWKTMBGXX:1:11101:6251:1098:ATCCATGG	0	2	76765947	36	71M	*	0	0	GGCGTTCCAAACCACGGTCATCTCTTCTTTGCTTACTTTAGTGACTTCTGGAGGATCAGGGCGGCCAGGTC	/<EEAEEEEEEEEAEEEEEEEEEEAEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE	MD:Z:71	NH:i:1	HI:i:1	NM:i:0	SM:i:36	XQ:i:40	X2:i:0	XO:Z:UU
+
+
+
+--------------------------------------------------------------------------------
+
+Pseudocode Overview:
+
+Before running the script, sort the SAM file to be analyzed by chromosome. This
+allows for data structures to be cleared after dealing with the alignments to
+each chromosome.
+
+First import the python regular expression module to use for the rest of the script.
+Nest, Make an empty dictionary, then read in the file containing all of the UMIs
+and assign them to the dictionary. The key will be a count variable so each of the
+UMIs will get a 1 to 2 digit code. This is to save memory in a later dictionary.
+
+Open the SAM file to be de-duplicated. Next, open a new file "Deduped.sam" in
+append mode to be written to throughout the script. Loop through the SAM file,
+checking each line to see if it contains a valid UMI and whether it is forward or
+reverse mapped. Determine where the 5' end of the read is, then either add it to
+a dictionary containing the umi and position of every read and write the line to
+"Deduped.sam", or if it is already in the dictionary do nothing else with the
+read.
+
+If the next read is from a new chromosome, the alignment dictionary is emptied.
+
+
+
+--------------------------------------------------------------------------------
+
+Pseudocode Details:
+
+Before running script, use samtools to sort the sam file by chromosome
+
+import re (regular expressions)
+
+make an UMI dictionary
+
+open the file STL96.txt
+    count = 0
+    for each line in the file:
+        count += 1
+        set the UMI dictionary key to the line and the value equal to the count
+
+Open the input sam file
+    open a new file called Deduped.sam in append mode
+    align_dic = {}
+    chr = 0
+    for line in sam file:
+        use regex group function to extract the third column of sam file, assign to variable chrm
+            check if variable chrm equals variable chr
+                if so, set chr = chrm
+                else, reset align dic to be empty
+        use regex group function to look for :numbers:numbers:(UMI):tab
+        check if UMI is in the dictionary
+            Use regex group to pull out the fourth column (left most alignment position) and set equal to a variable called align_pos
+            Use regex group to pull out the second column in line (one tab and one set of characters before it), set to variable flag
+            if the flag is == 16:
+                if so, use regex to pull out the cigar string, set = to variable cigar_string. CIGAR string should follow 5 groups of characters and 5 tabs
+                get_reverse_pos(cigar_string)
+                add length spanned to align_pos
+                Check if the align_dic already has an entry with the key of UMI and a value equal to align_pos
+                    if so, break
+                Else: Set the key of align_dic as the value of the UMI dictionary at the UMI, and set the value equal to align_pos
+                    write the line of the sam file to Deduped.sam
+            else:
+                Use regex group to pull out the cigar string, set = to variable. CIGAR string should follow 5 groups of characters and 5 tabs
+                Use regex match to find [0-9]+S, set equal to variable called clipping
+                Increment align_pos by clipping
+                Check if the align_dic already has an entry with the key of UMI and a value equal to align_pos
+                    if so, break
+                Else: Set the key of align_dic as the value of the UMI dictionary at the UMI, and set the value equal to align_pos
+                    write the line of the sam file to Deduped.sam
+        else:
+            break
