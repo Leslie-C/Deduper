@@ -29,10 +29,10 @@ Functions:
    -Calculate the 5' position based off of the directionality accounting for soft-clipping and Indels for reverse complement strands
    def get_tuple(Record_string)
    ````Take in a record's header and create a tuple containing the UMI, Chromosome and 5' Position```
-   Return: tuple("Direction", "Chromosome","UMI", "5' Position")
+   Return: tuple("Chromosome","UMI", "5' Position"), Direction
 
    Example Input: "NS500451:154:HWKTMBGXX:1:11101:15364:1139:GAACAGGT 2       5       119767599       36      66M     =       119767642       109     CCCCAAACAAGTGGTCCCCAAAAGAGACAGCCTCAAAATGGTCTAAGAAGCTGGCATAAAGGTCAG      6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEAEEEEEAEEEEEEEEEEEE      MD:Z:66 NH:i:1  HI:i:1  NM:i:0  SM:i:36 XQ:i:40 X2:i:0  XO:Z:CU XG:Z:A"
-   Example Output: ("Forward", "5", "GAACAGGT", "119767599")
+   Example Output: ("5", "GAACAGGT", "119767599"), "Forward"
 
 
 Everything in-between % are function ideas that were combined into the function above:
@@ -99,7 +99,7 @@ for current_line in file: #Read in one line at a time from a file#
   -Extract chromosome value from current_line and store as a variable.
 
   -> if extracted chromosome value is different than the previous chromosome value:
-    -Flush the Forward_Dict and Reverse_Dict. 
+    -Flush the Forward_Dict and Reverse_Dict.
 
   -Pass the current_line variable into the get_tuple() function and save function output as a tuple variable.
   -Set a direction variable to later be used to identify which dictionary to compare the tuple with.
