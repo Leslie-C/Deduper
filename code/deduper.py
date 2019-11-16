@@ -5,17 +5,11 @@ def get_UMI(QNAME):
     return(QNAME.split(':')[-1])
 
 def isReverse(FLAG):
-    if FLAG & 16:
-        return True
-    return False
+    return True if (FLAG & 16) else False
 
 def isMapped(FLAG):
-    if FLAG & 4:
+    return False if (FLAG & 4) else True
 
-        return False
-    return True
-
-#@profile
 def main_code(filename):
 
     dupe_counter = 0
@@ -56,12 +50,10 @@ def main_code(filename):
                             offset -= int(CIGAR_split[0][:-1])
                     else:
                         for index,id in enumerate(CIGAR_split):
-                            if ('S' in id) & (index == 0):
-                                offset -=  int(id[:-1])
-                            elif ('S' in id) & (index != 0):
-                                offset += int(id[:-1])
-                            elif ('D' in id) or ('N' in id) or ('M' in id):
+                            if ('S' in id) & (index != 0):
                                 offset +=  int(id[:-1])
+                            elif 'I' not in id:
+                                offset += int(id[:-1])
                     actual_pos = sam_pos + offset
                 if (UMI, actual_pos, isReverseStrand) in output_dict:
                     dupe_counter += 1
