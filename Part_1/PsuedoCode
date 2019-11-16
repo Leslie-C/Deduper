@@ -3,32 +3,67 @@ DeDuper- Part 1 - Pseudocode – Reference Based PCR Duplicate Removal Tool
 David Evarts 
 Due 11/15/19
 
-The Problem:  PCR amplification is used to provide enough fragments to capture most of the unique reads and create a library for sequencing.   RNAseq is often used to measure differential expression.  PCR duplicates can be mistaken for biological increases in expression and mask the true expression levels.  If the amount of PCR amplification is heightened, in order to capture elements that are rarely expressed, the amount of PCR duplication can increase substantially.
+The Problem:  PCR amplification is used to provide enough genetic material to capture most of the unique reads and create a library for 
+sequencing.  
+RNAseq is often used to measure differential expression.  PCR duplicates can be mistaken for biological increases in expression and mask the true expression levels.  If the amount of PCR amplification is heightened, in order to capture elements that are rarely expressed, the amount of PCR duplication can increase substantially.
 
-The Purpose: If duplicates that are not due to higher expression, but are, instead, artifacts of library creation, such as PCR amplification, can be removed, a better understanding of the expression levels of genetic elements can be achieved.
+The Purpose: If duplicates that are not due to higher expression, but are due to PCR amplification are removed, a better understanding 
+of the expression levels of genetic elements can be achieved.
 
-The general strategy:  When Unique Molecular Identifiers (UMIs) have been added, a PCR duplicate fragment read will have all of the following features, when compared with a duplicated read.  These can be determined from the SAM file and a list of UMIs.  Parsing through the reads, duplicates will be isolated.
+The general strategy:  When Unique Molecular Identifiers (UMIs) have been added, a PCR duplicate fragment read will have all of the 
+following features.  These can be determined from the SAM file and a list of UMIs.  
 
 •	It will be on the same strand.
 •	It will be on the same chromosome
 •	It will be at the same initial position, after accounting for soft clipping at the beginning in the read direction.
 •	It will have the same UMI.
-Examples:
-Properly formatted Input Sam file:  What does this look like?
-Properly formated expected output sam file:
+
+###Examples:####
+Properly formatted Input Sam file: test_ordered.SAM
+@HD	VN:1.0	SO:unsorted
+@PG	ID:GSNAP	PN:gsnap	VN:2017-10-12	CL:gsnap.avx2 --gunzip -t 26 -A sam -m 5 -d mm10_chroms -D /projects/bgmp/coonrod/mmu/INTEL -s /projects/bgmp/coonrod/mmu/INTEL/mm10_chroms/mm10_chroms.maps/Mus_musculus.GRCm38.89.splicesites.iit --split-output=/projects/bgmp/coonrod/deduper/gsnap//Datset1 /projects/bgmp/coonrod/deduper//Dataset1.fastq_dups.gz
+@SQ	SN:1	LN:195471971
+@SQ	SN:2	LN:182113224
+@SQ	SN:3	LN:160039680
+@SQ	SN:4	LN:156508116
+NS500451:154:HWKTMBGXX:1:11101:24260:1121:CTGTTCAC	0	2	76814284	36	71M	*	0	0	TCCACCACAATCTTACCATCCTTCCTCCAGACCACATCGCGTTCTTTGTTCAACTCACAGCTCAAGTACAA	6AEEEEEEAEEAEEEEAAEEEEEEEEEAEEAEEAAEE<EEEEEEEEEAEEEEEEEAAEEAAAEAEEAEAE/	MD:Z:71	NH:i:1	HI:i:1	NM:i:0	SM:i:36	XQ:i:40	X2:i:0	XO:Z:UU
+NS500451:154:HWKTMBGXX:1:11101:18996:1145:TTCGCCTA	0	2	130171653	36	40M1I30M	*	0	0	GTCTCTTAGTTTATTATAAACCAGCTTCATAGGCCACAGAGGAAAAAGGACTATATACATACAGCCTTTTG	6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEAEEEEEEEEEEEEEEEEEEEEEEEEEEE	MD:Z:53G16	NH:i:1	HI:i:1	NM:i:2	SM:i:36	XQ:i:40	X2:i:0	XO:Z:UU
+NS500451:154:HWKTMBGXX:1:11101:25533:1187:GTTCACCT	0	2	76743835	36	71M	*	0	0	CTTGGTAACTTTCAGAGAATTAGTCACAACTTCTGAAGCAACCACAGTCCATGCAAGTCGACTGGTTTCTC	6AEEEEEEEEEEEEEEEEEEEEEEEAEEEEEEEEEEEEEEEEAEEEEEEE<EEEEEEEEEEEEEEEEEEEE	MD:Z:71	NH:i:1	HI:i:1	NM:i:0	SM:i:36	XQ:i:40	X2:i:0	XO:Z:UU
+NS500451:154:HWKTMBGXX:1:11101:6251:1098:ATCCATGG	0	2	76765947	36	71M	*	0	0	GGCGTTCCAAACCACGGTCATCTCTTCTTTGCTTACTTTAGTGACTTCTGGAGGATCAGGGCGGCCAGGTC	/<EEAEEEEEEEEAEEEEEEEEEEAEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE	MD:Z:71	NH:i:1	HI:i:1	NM:i:0	SM:i:36	XQ:i:40	X2:i:0	XO:Z:UU
+
+Properly formated expected output sam file:test_ordered_deduplicated.SAM
+@HD	VN:1.0	SO:unsorted
+@PG	ID:GSNAP	PN:gsnap	VN:2017-10-12	CL:gsnap.avx2 --gunzip -t 26 -A sam -m 5 -d mm10_chroms -D /projects/bgmp/coonrod/mmu/INTEL -s /projects/bgmp/coonrod/mmu/INTEL/mm10_chroms/mm10_chroms.maps/Mus_musculus.GRCm38.89.splicesites.iit --split-output=/projects/bgmp/coonrod/deduper/gsnap//Datset1 /projects/bgmp/coonrod/deduper//Dataset1.fastq_dups.gz
+@SQ	SN:1	LN:195471971
+@SQ	SN:2	LN:182113224
+S500451:154:HWKTMBGXX:1:11101:24260:1121:CTGTTCAC	0	2	76814284	36	71M	*	0	0	TCCACCACAATCTTACCATCCTTCCTCCAGACCACATCGCGTTCTTTGTTCAACTCACAGCTCAAGTACAA	6AEEEEEEAEEAEEEEAAEEEEEEEEEAEEAEEAAEE<EEEEEEEEEAEEEEEEEAAEEAAAEAEEAEAE/	MD:Z:71	NH:i:1	HI:i:1	NM:i:0	SM:i:36	XQ:i:40	X2:i:0	XO:Z:UU
+NS500451:154:HWKTMBGXX:1:11101:18996:1145:TTCGCCTA	0	2	130171653	36	40M1I30M	*	0	0	GTCTCTTAGTTTATTATAAACCAGCTTCATAGGCCACAGAGGAAAAAGGACTATATACATACAGCCTTTTG	6AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEAEEEEEEEEEEEEEEEEEEEEEEEEEEE	MD:Z:53G16	NH:i:1	HI:i:1	NM:i:2	SM:i:36	XQ:i:40	X2:i:0
 
 ######Functions:#########
 
 Def Direction_Checker(one Sam aligned read):
-## A function to check the strand on which a read is directed.
-##Check read##
+## A function to check the direction of the read.
+-Use Grep to isolate SAM alignment column 2, the bitwise flag.
+-If the flag + 16 = 16, the read is a minus read.
+-If the flag + 16 does not = 16, the read is a plus read
+Return - Strand = + or Strand = -
+Unit Test - Feed the following two reads into the function and print the Strand variable for each.  One should print "+", the other should print "-".
+NS500451:154:HWKTMBGXX:1:11101:24260:1121:CTGTTCAC	0	2	76814284	36	71M	*	0	0	TCCACCACAATCTTACCAT
+NS500451:154:HWKTMBGXX:1:11101:18996:1145:TTCGCCTA	3	2	130171653	36	40M1I30M	*	0	0	GTC
 
 Def UMI_Checker(one Sam aligned read):
-## A function to find the UMI of a read
-##  ##
+# A function to find the UMI of a read
+-The UMI is found as the last area of the first alignment feild.  Use RegEx to find an area with an unspecified # of digits, followed by a colon, followed by a string of capital G,C,T and/or A.
+Return - An UMI string of 8 bases
+Unit Test- Feed the function the same two strings used for the Direction_Checker() unit test above and print the output.  These should be CTGTTCAC and TTCGCCTA.
 
 Def Chrom_Checker(one Sam aligned read cigar string):
 ## A function to find the chromosome on which a read resides
+-Using Grep, acquire the number in column 3 of the alignment section of the SAM
+Return - The number of the chromosome on which the read resides
+Unit Test- Use the following two reads and print the Chromosomes.  THese should be 2 and 11.
+NS500451:154:HWKTMBGXX:1:11101:24260:1121:CTGTTCAC	0	2	76814284	36	71M	*	0	0	TCCACCACAATCTTACCAT
+NS500451:154:HWKTMBGXX:1:11101:18996:1145:TTCGCCTA	3	11	130171653	36	40M1I30M	*	0	0	GTC
 
 Def Plus_adjust_start (one Sam aligned plus read):
 ##A function that takes the cigar string from one forward read and its start position and returns an adjusted start position.##
@@ -61,17 +96,29 @@ Unit Test - Try the following cigar strings and start position.  Print the count
 	start = 0, cigar = 1S5M10N4M, adjusted = 20
 	
 ########  Pseudo-Code:  ###########
--Input is via a bash slurm script which collects the arg-parse arguments.
+-Input should be via a bash slurm script which collects the arg-parse arguments.  THe User will need to provide a sorted SAM file.
+##Example:
+#! /usr/bin/bash
+#SBATCH --account=bgmp          ### SLURM account
+#SBATCH --partition=bgmp        ### Partition
+#SBATCH --job-name=Demultiplex      ### Job Name
+#SBATCH --output=slurm-%j-%x.out         ### output log
+#SBATCH --time=0-10:00:00       ### time estimate
+#SBATCH --nodes=1               ### Node count required (default)
+#SBATCH --ntasks-per-node=1     ### Number of tasks (default)
+#SBATCH --cpus-per-task=7       ### Number
 
-1.) #### Install arg-parse function ####
-Return – ability to set arg-parse
-Unit Test – See Arg parse function below. If Arg-Parse function works, it’s installed.
+conda deactivate
+conda deactivate
+conda deactivate
 
-2.) #### Install conda environment  ####
-Return – ability to read python script
-Unit Test – Slurm shell should be able to read and respond to a python print(“foo”) script and will display bgmp -env3
+conda activate bgmp_py3
 
-3.) ###Use Arg-Parse function to collect information and set tags that can be called.###  
+/usr/bin/time -v ./Deduper_script.py -I /Some_Align_Sorted.SAM -O ./Some_Align_Sorted_Deduplicated.SAM -U ./umis.txt
+##Return - The ability to enter files.  Test with tester files and arg_parse print names of argparse arguments results,
+and look for files with correct names.  
+
+1.) ###Use Arg-Parse function to collect information and set tags that can be called.###  
  - Collect Input SAM file. Specify that it must be a SAM file that has been ordered using SamTools -sort. 
  - SamTools sort outputs a sorted (by position) Bam file. 
  - If we use Bam to Sam to convert it to a human readable file, do we keep the sorting?
@@ -80,30 +127,30 @@ Unit Test – Slurm shell should be able to read and respond to a python print(�
 	-collect from user whether duplicates should be recorded in a duplicates output file
 	-collect from user name to use on output file
 Return – A slurm script calling a correctly worded python script with arg flags in slurm script and arg parse coded in python script should correctly respond to the following print commands.
-	-print name of sam file input test script.  tester_ordered.sam
+	-print name of sam file input test script.  some_data_sorted.sam
 	-print name of UMI.tsv
-	-print single or paired end
-	-print duplicates file name.sam or none
-	-print correct file name.sam
+	-print output file some_data_sorted_deduplicated.sam
 
-4.) #### Open the input SAM file####
+2.) #### Open the input SAM file####
 Open as read given in ArgParse.
 Return- opened file
 Unit Test – display tester input sam file with cat command piped to head.
 
-5.) ####Open an output duplicates_removed.sam File.####
+3.) ####Open an output duplicates_removed.sam File.####
 Open with write permission
 Return -opened, writable file.
 Unit Test – write first full read from input tester file to output file.  Display contents with cat command.
 
 ######Big Loop#######
-6.) ####Set variables for loop####It .
+4.) ####Set variables for loop####It .
 	a. -For each line in the input file, if the line begins with "@", copy it  to output file and move on.
 	b.- copy the first read that does not have an @ into the output file
-Return - An output file labelled
+Return - Alignment section and one read in the output file
+Unit Test - look into output file with a cat command.  It should have the alignment section and one read.
 	
-7.) ####start read checker loop####
-#This section runs through the reads and checks to see if they match the last read copied into the outfile.  If they match, they are duplicates and are not added to the output file.  If they do not match they are added to the outfile and the next read after the new addition is checked, restarting the loop, until all are done.
+5.) ####start read checker loop####
+#This section runs through the reads and checks to see if they match the last read copied into the outfile.  If they match, they are duplicates and are not added to the output file. 
+If they do not match they are added to the outfile and the next read after the new addition is checked, restarting the loop, until all are done.
   
   For read copied into out file, do the following.  #This means that duplicates are skipped and the loop restarts at the next new (non-duplicated) read.
 	For the next read in the input file do the following
@@ -123,5 +170,8 @@ Return - An output file labelled
 			c.) Use Direction_Checker to check direction. If it matches Strand variable continue.  If not go to 10
 			d.) If Strand matches and strand is + use Plus_start to determine adjusted start position.  If matches start continue loop at #9 with next read.
 		10. When a read is found that does not match copy the read into the out file
+
+Return - An output file with the header and only the nonduplicated reads.
+Unit Test - Run with Tester files.  Cat the output file and look for any duplicates.
 
 """
