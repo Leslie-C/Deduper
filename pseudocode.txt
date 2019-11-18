@@ -68,11 +68,11 @@ This function accounts for Insertions, Deletions and soft-clipping on the right-
       regex out the Number and Letter
       Sum up # pertaining to M's, N's, D's
       Ignore # pertaining to I's (Insertions do nothing)
-      Subtract # pertaining to S's (on the right side: 3M5N2S)
+      Add # pertaining to S's (on the right side: 3M5N2S)
       return POS
 
 Unit test: reverse(3S20M3I100N2D45M7S, 20)
-return:
+return: 180 
 
 
 #reading in records of the SAM file, 1 record at a time, each record read in will be compared to the record stored in that list
@@ -83,8 +83,8 @@ with open(sorted.sam, "rt") as file:
 
   While True:
 
-    1) a) create an empty list to store the current record in
-          current_record = []
+    1) a) create an empty list to store the reference record in
+          reference_record = []
 
       b) create another empty list to store the next record
          next_record = []
@@ -96,7 +96,7 @@ with open(sorted.sam, "rt") as file:
 
       L2 = read in the next record of the SAM file
 
-    4) append reference record to current_record[], use .readline() and .rstrip(" ")
+    4) append reference record to reference_record[], use .readline() and .rstrip(" ")
 
        append next record to next_record[], use. readLine() & .rstrip(" ")
 
@@ -106,40 +106,44 @@ with open(sorted.sam, "rt") as file:
     if L1 == "":
         break
 
-    6) call on parsing_QNAME() and check to see if current_record[0] or next_record[0] contains the a known UMI:
+    6) call on parsing_QNAME() and check to see if reference_record[0] or next_record[0] contains the a known UMI:
       (the logic is to efficiently break out of the loop at the first "if" condition if QNAME is not in UMI_list[])
-      if parsing_QNAME(current_record[0]) is not UMI_list:
+      if parsing_QNAME(reference_record[0]) is not UMI_list:
           discard old this records
           iterate over a new record, start at the top of this loop again
-          append new record into current_record[]
+          append new record into reference_record[]
           append following record to next_record[]
 
 
-  7) if parsing_QNAME(current_record[0]) == parsing_QNAME(next_record[0]) and  current_record[0] is in UMI_list[]:
+  7) if parsing_QNAME(reference_record[0]) == parsing_QNAME(next_record[0]) and  reference_record[0] is in UMI_list[]:
       move to the next nested-if statement, the two records have passed the first parameters for being PCR duplicates because:
       * they have the same UMI and the UMI is one of the 96 indexes in the UMI_list
 
 
-              8) another nested if statement that checks if chromosome (RNAME) column are the same between current_record & next_record
-              if current_record[3] == next_record[3]:
+              8) another nested if statement that checks if chromosome (RNAME) column are the same between reference_record & next_record
+              if reference_record[3] == next_record[3]:
               move on to the next condition,
 
 
-                      9) if (current_record[1] AND next_record[1] & 16) != 16 AND forward(current_record[5], current_record[3]) == forward(next_record[5], next_record[3]):
+                      9) if (reference_record[1] AND next_record[1] & 16) != 16 AND forward(reference_record[5], reference_record[3]) == forward(next_record[5], next_record[3]):
                       for PCR duplication to occur, record 1 and record 2 MUST both have the same directionality
                       call on the forward() function that only looks at soft-clipping on the left-most of the CIGAR string
                       this is the last condition that checks for PCR duplication for a FORWARD read, file out
 
-                      file out current_record
 
                       empty/clear next_record[]
 
 
-                      10) else if: (current_record[1] AND next_record[1] & 16) == 16 AND reverse_comp(current_record[5], current_record[3]) == reverse_comp(next_record[5], next_record[3]):
+                      10) else if: (reference_record[1] AND next_record[1] & 16) == 16 AND reverse_comp(reference_record[5], reference_record[3]) == reverse_comp(next_record[5], next_record[3]):
                       call on the reverse_comp() function that accounts for CIGARs with Insertions, Deletions and soft-clipping on the right-most side
 
-                      file out current_record
-
                       empty/clear next_record[]
 
-    iterate over the next record, to be stored in next_record[]  
+  11) ELSE:
+    this loop is initiated if reference_record and next_record are not PCR duplicates
+    append new reference_record
+    append new next_record to compare to reference_record
+
+
+
+    iterate over the next record, to be stored in next_record[]
