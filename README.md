@@ -1,7 +1,7 @@
 # Deduper
 
 ## Part 1
-Fork this repo - you should do all your work in your fork of this repository.
+Use this repo template to create your own Deduper repo - you should do all your work in your own repository. Please name it `Deduper-<github-user-name>`.
 
 Write up a strategy for writing a Reference Based PCR Duplicate Removal tool. That is, given a sam file of uniquely mapped reads, remove all PCR duplicates (retain only a single copy of each read). Develop a strategy that avoids loading everything into memory. You should not write any code for this portion of the assignment. Be sure to:
 - Define the problem
@@ -25,7 +25,7 @@ An important part of writing code is reviewing code - both your own and other's.
 
 You can find your assigned reviewees on Canvas. You can find your fellow students' repositories at 
 ```
-github.com/<user>/Deduper
+github.com/<user>/Deduper-<github-user-name>
 ```
 Be sure to leave comments on their repositories by creating issues or by commenting on the pull request.
 
@@ -48,7 +48,7 @@ Given a SAM file of uniquely mapped reads, remove all PCR duplicates (retain onl
     - Choice of duplicate written to file
     
 You MUST:
-- Write Python 3 compatible code
+- Write Python 3.9 compatible code
 - Include the following argparse options
     - ```-f```, ```--file```: required arg, absolute file path
     - ```-p```, ```--paired```: optional arg, designates file is paired end (not single-end)
