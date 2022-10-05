@@ -61,5 +61,5 @@ You MUST:
           ```
 - Output the first read encountered if duplicates are found
 - Output a properly formatted SAM file
-- Name your python script ```<your_last_name>_deduper.py```
+- Name your python script ```<your_last_name>_deduper.py``` and place it in the top leve of your repo (that is, not inside a folder)
 
