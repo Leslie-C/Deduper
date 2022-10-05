@@ -3,10 +3,10 @@
 ## Part 1
 Use this repo template to create your own Deduper repo - you should do all your work in your own repository. Please name it `Deduper-<github-user-name>`.
 
-Write up a strategy for writing a Reference Based PCR Duplicate Removal tool. That is, given a sam file of uniquely mapped reads, remove all PCR duplicates (retain only a single copy of each read). Develop a strategy that avoids loading everything into memory. You should not write any code for this portion of the assignment. Be sure to:
+Write up a strategy for writing a Reference Based PCR Duplicate Removal tool. That is, given a sorted sam file of uniquely mapped reads, remove all PCR duplicates (retain only a single copy of each read). Develop a strategy that avoids loading everything into memory. You should not write any code for this portion of the assignment. Be sure to:
 - Define the problem
 - Write examples:
-    - Include a properly formated input sam file
+    - Include a properly formated sorted input sam file
     - Include a properly formated expected output sam file
 - Develop your algorithm using pseudocode
 - Determine high level functions
@@ -33,30 +33,33 @@ Be sure to leave comments on their repositories by creating issues or by comment
 Write your deduper function!
 
 Given a SAM file of uniquely mapped reads, remove all PCR duplicates (retain only a single copy of each read). Remember:
-- Samtools sort
-- Account for all possible CIGAR strings (including adjusting for soft clipping, etc.)
-- Strand
-- Single-end reads
-- Known UMIs
+- Your Python code can assume a sorted sam file (you *might* need to use `samtools sort` outside of your Python script)
+- Account for: 
+    - all possible CIGAR strings (including adjusting for soft clipping, etc.)
+    - Strand
+    - Single-end reads
+    - Known UMIs
 - Considerations:
     - Millions of reads – avoid loading everything into memory!
     - Be sure to utilize functions appropriately
     - Appropriately comment code and include doc strings
-- **CHALLENGE**: Include options for
+- **CHALLENGE**: In a **separate branch**, implement options for
     - Single-end vs paired-end
     - Known UMIs vs randomers
     - Choice of duplicate written to file
     
 You MUST:
-- Write Python 3.9 compatible code
+- Write Python 3.10 compatible code
 - Include the following argparse options
-    - ```-f```, ```--file```: required arg, absolute file path
-    - ```-p```, ```--paired```: optional arg, designates file is paired end (not single-end)
-    - ```-u```, ```--umi```: optional arg, designates file containing the list of UMIs (unset if randomers instead of UMIs)
-    - ```-h```, ```--help```: optional arg, prints a USEFUL help message (see argparse docs)
-        - If your script is not capable of dealing with a particular option (ex: no paired-end functionality), your script should print an error message and quit
+    - ```-f```, ```--file```: designates absolute file path to sorted sam file
+    - ```-o```, ```--file```: designates absolute file path to sorted sam file
+    - ```-u```, ```--umi```: designates file containing the list of UMIs
+    - ```-h```, ```--help```: prints a USEFUL help message (see argparse docs)
+        - That is, your code must be able to run (in a single step) if given a command in the format:
+          ```
+          ./deduper.py -u STL96.txt -f <in.sam> -o <out.sam>
+          ```
 - Output the first read encountered if duplicates are found
-    - You may include an additional argument to designate output of a different read (highest quality or random or ???)
-- Output a properly formatted SAM file with “_deduped” appended to the filename
+- Output a properly formatted SAM file
 - Name your python script ```<your_last_name>_deduper.py```
 
