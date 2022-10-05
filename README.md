@@ -52,12 +52,12 @@ You MUST:
 - Write Python 3.10 compatible code
 - Include the following argparse options
     - ```-f```, ```--file```: designates absolute file path to sorted sam file
-    - ```-o```, ```--file```: designates absolute file path to sorted sam file
+    - ```-o```, ```--outfile```: designates absolute file path to sorted sam file
     - ```-u```, ```--umi```: designates file containing the list of UMIs
     - ```-h```, ```--help```: prints a USEFUL help message (see argparse docs)
         - That is, your code must be able to run (in a single step) if given a command in the format:
           ```
-          ./deduper.py -u STL96.txt -f <in.sam> -o <out.sam>
+          ./<your_last_name>_deduper.py -u STL96.txt -f <in.sam> -o <out.sam>
           ```
 - Output the first read encountered if duplicates are found
 - Output a properly formatted SAM file
