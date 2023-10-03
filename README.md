@@ -15,10 +15,10 @@ Write up a strategy for writing a Reference Based PCR Duplicate Removal tool. Th
     - Test examples (for individual functions)
     - Return statement
     
-For this portion of the assignment, you should design your algorithm for single-end data, with 96 UMIs. UMI information will be in the QNAME, like so: ```NS500451:154:HWKTMBGXX:1:11101:15364:1139:GAACAGGT```. Discard any UMIs with errors (or error correct, if you're feeling ambitious).
+For this portion of the assignment, you should design your algorithm for single-end data, with 96 UMIs. UMI information will be in the QNAME, like so: ```NS500451:154:HWKTMBGXX:1:11101:15364:1139:GAACAGGT```. Discard any UMIs with errors (or think about how you might error correct, if you're feeling ambitious).
 
 ## Part 2
-An important part of writing code is reviewing code - both your own and other's. In this portion of the assignment, you will be assigned 3 students' algorithms to review. Be sure to evaluate the following points:
+An important part of writing code is reviewing code - both your own and other's. In this portion of the assignment, you will be assigned 3 students' pseudocode algorithms to review. Be sure to evaluate the following points:
 - Does the proposed algorithm make sense to you? Can you follow the logic?
 - Does the algorithm do everything it's supposed to do? (see part 1)
 - Are proposed functions reasonable? Are they "standalone" pieces of code?
@@ -32,7 +32,7 @@ Be sure to leave comments on their repositories by creating issues or by comment
 ## Part 3
 Write your deduper function!
 
-Given a SAM file of uniquely mapped reads, remove all PCR duplicates (retain only a single copy of each read). Remember:
+Given a SAM file of uniquely mapped reads, and a text file containing the known UMIs, remove all PCR duplicates (retain only a single copy of each read). Remember:
 - Your Python code can assume a sorted sam file (you *might* need to use `samtools sort` outside of your Python script)
 - Account for: 
     - all possible CIGAR strings (including adjusting for soft clipping, etc.)
@@ -46,10 +46,11 @@ Given a SAM file of uniquely mapped reads, remove all PCR duplicates (retain onl
 - **CHALLENGE**: In a **separate branch**, implement options for
     - Single-end vs paired-end
     - Known UMIs vs randomers
+    - Error correction of known UMIs
     - Choice of duplicate written to file
     
 You MUST:
-- Write Python 3.10 compatible code
+- Write Python 3.11 compatible code
 - Include the following argparse options
     - ```-f```, ```--file```: designates absolute file path to sorted sam file
     - ```-o```, ```--outfile```: designates absolute file path to sorted sam file
