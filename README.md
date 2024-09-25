@@ -50,10 +50,10 @@ Given a SAM file of uniquely mapped reads, and a text file containing the known 
     - Choice of duplicate written to file
     
 You MUST:
-- Write Python 3.11 compatible code
+- Write Python 3.12 compatible code
 - Include the following argparse options
     - ```-f```, ```--file```: designates absolute file path to sorted sam file
-    - ```-o```, ```--outfile```: designates absolute file path to sorted sam file
+    - ```-o```, ```--outfile```: designates absolute file path to deduplicated sam file
     - ```-u```, ```--umi```: designates file containing the list of UMIs
     - ```-h```, ```--help```: prints a USEFUL help message (see argparse docs)
         - That is, your code must be able to run (in a single step) if given a command in the format:
